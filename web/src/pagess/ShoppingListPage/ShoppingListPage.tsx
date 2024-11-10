@@ -6,6 +6,7 @@ import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { H1 } from "../../components/Typography";
 import { Card, CardBody } from "../../components/Card";
+import { UserGuard } from "../../components/UserGuard";
 
 export const ShoppingListPage = () => {
   const params = useParams();
@@ -36,7 +37,9 @@ export const ShoppingListPage = () => {
             <p>{`Owner: ${data.owner.email}`}</p>
           </div>
           <div className="flex gap-2 items-center">
-            <IconButton iconName="EllipsisVerticalIcon" />
+            <UserGuard userId={data.owner.id}>
+              <IconButton iconName="EllipsisVerticalIcon" />
+            </UserGuard>
             <Button variant="primary">Create new item</Button>
           </div>
         </div>

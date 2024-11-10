@@ -7,14 +7,14 @@ export type UseShoppingListParams = {
 
 const DATA_MOCK: ShoppingList = {
   id: "xxx",
-  name: "Thursday shopping",
+  name: "Shopping for thursday",
   owner: {
-    id: "xxx",
+    id: "1",
     email: "pepa@zleasa.com",
   },
   invitees: [
     {
-      id: "xxx",
+      id: "2",
       email: "jozin@zbazin.cz",
     },
   ],
