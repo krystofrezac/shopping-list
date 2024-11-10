@@ -7,7 +7,7 @@ export type UseShoppingListParams = {
 
 const DATA_MOCK: ShoppingList = {
   id: "xxx",
-  name: "Shopping for thursday",
+  name: "List for thursday",
   owner: {
     id: "1",
     email: "pepa@zleasa.com",
@@ -37,10 +37,12 @@ const DATA_MOCK: ShoppingList = {
   ],
 };
 
+export const getShoppingListQueryKey = (id: string) => ["shoppingList", id];
+
 export const useShoppingListQuery = ({
   id,
 }: UseShoppingListParams): UseQueryResult<ShoppingList> =>
   useQuery({
-    queryKey: ["shoppingList", id],
+    queryKey: getShoppingListQueryKey(id),
     queryFn: () => DATA_MOCK,
   });
