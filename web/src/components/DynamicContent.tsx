@@ -1,4 +1,5 @@
 import { ReactElement } from "react";
+import { Spinner } from "./Spinner";
 
 export type RenderContent<TData> = (data: TData) => ReactElement;
 
@@ -15,9 +16,7 @@ export const DynamicContent = <TData,>({
   error,
   renderContent,
 }: DynamicContentProps<TData>) => {
-  if (isPending)
-    // TODO: spinner
-    return "...";
+  if (isPending) return <Spinner />;
 
   if (error || data === undefined)
     // TODO: make it nicer

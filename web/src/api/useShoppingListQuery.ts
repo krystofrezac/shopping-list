@@ -10,7 +10,7 @@ const DATA_MOCK: ShoppingList = {
   name: "List for thursday",
   owner: {
     id: "1",
-    email: "pepa@zleasa.com",
+    email: "pepa@zlesa.com",
   },
   invitees: [
     {
@@ -44,5 +44,10 @@ export const useShoppingListQuery = ({
 }: UseShoppingListParams): UseQueryResult<ShoppingList> =>
   useQuery({
     queryKey: getShoppingListQueryKey(id),
-    queryFn: () => DATA_MOCK,
+    queryFn: () =>
+      new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(DATA_MOCK);
+        }, 300);
+      }),
   });

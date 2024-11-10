@@ -4,74 +4,44 @@ import { ShoppingList } from "../../api/types";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { H1 } from "../../components/Typography";
-import { Card, CardBody } from "../../components/Card";
 import { UserGuard } from "../../components/UserGuard";
-import { useUpdateShoppingListItemMutation } from "../../api/useUpdateShoppingListItemMutation";
 import { useState } from "react";
-import { CheckBox } from "../../components/Checkbox";
+import { ShoppingListItem } from "./ShoppingListItem";
+import { CheckBox } from "../../components/CheckBox";
+import { ItemEditDialog } from "./ItemEditDialog";
 import { CheckBoxFormControl } from "../../components/CheckBoxFormControl";
-import { useGetUpdateItemQueryCache } from "./useGetUpdateItemQueryCache";
-import { Spinner } from "../../components/Spinner";
 
 export const ShoppingListPage = () => {
   const params = { id: "xxx" }; // TODO: useParams();
 
   const query = useShoppingListQuery({ id: params.id! });
-  const {
-    mutate: updateShoppingListItem,
-    isPending: isUpdateShoppingListItemPending,
-    variables: updateShoppingListItemVariables,
-  } = useUpdateShoppingListItemMutation();
 
-  const updateImteQueryCache = useGetUpdateItemQueryCache();
   const [showCompleted, setShowCompleted] = useState(false);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
   const renderContent: RenderContent<ShoppingList> = (shoppingList) => {
     const items = shoppingList.items.filter(
       (item) => showCompleted || !item.completed,
     );
 
-    const mappedItems = items.map((item, index) => {
-      const handleCompletedChange = () => {
-        updateShoppingListItem(
-          {
-            shoppingListId: shoppingList.id,
-            shoppingListItemIndex: index,
-            data: { ...item, completed: !item.completed },
-          },
-          {
-            onSuccess: (newShoppingListItem) =>
-              updateImteQueryCache({
-                shoppingListId: shoppingList.id,
-                itemIndex: index,
-                newData: newShoppingListItem,
-              }),
-          },
-        );
-      };
-
-      const checkbox =
-        index === updateShoppingListItemVariables?.shoppingListItemIndex &&
-        isUpdateShoppingListItemPending ? (
-          <Spinner />
-        ) : (
-          <CheckBox checked={item.completed} onChange={handleCompletedChange} />
-        );
-
-      return (
-        <Card key={index}>
-          <CardBody>
-            <div className="flex flex-row items-center gap-4">
-              <div className="w-6 flex items-center">{checkbox}</div>
-              <p className="text-lg">{item.name}</p>
-            </div>
-          </CardBody>
-        </Card>
-      );
-    });
+    const mappedItems = items.map((item, index) => (
+      <ShoppingListItem
+        key={index}
+        index={index}
+        item={item}
+        shoppingListId={shoppingList.id}
+        onEdit={() => setEditingItemIndex(index)}
+      />
+    ));
 
     return (
       <>
+        <ItemEditDialog
+          index={editingItemIndex ?? -1}
+          shoppingListId={shoppingList.id}
+          item={shoppingList.items[editingItemIndex ?? -1]}
+          onClose={() => setEditingItemIndex(null)}
+        />
         <div className="flex gap-4 items-center">
           <div className="grow">
             <H1>{shoppingList.name}</H1>
@@ -98,5 +68,9 @@ export const ShoppingListPage = () => {
     );
   };
 
-  return <DynamicContent {...query} renderContent={renderContent} />;
+  return (
+    <>
+      <DynamicContent {...query} renderContent={renderContent} />
+    </>
+  );
 };
