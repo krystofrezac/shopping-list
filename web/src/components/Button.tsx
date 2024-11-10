@@ -1,25 +1,23 @@
-import classNames from "classnames"
+import classNames from "classnames";
 
-export type ButtonVariant = "basic" | "primary"
+export type ButtonVariant = "basic" | "primary";
 
 export type ButtonProps = React.DetailedHTMLProps<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
   HTMLButtonElement
 > & {
-  variant?: ButtonVariant
-}
+  variant?: ButtonVariant;
+};
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: "btn-primary",
-  basic: ""
-}
+  basic: "",
+};
 
 export const Button = ({ children, variant = "basic" }: ButtonProps) => {
   return (
-    <button
-      className={classNames("btn", variantClasses[variant])}
-    >
+    <button className={classNames("btn", variantClasses[variant])}>
       {children}
     </button>
-  )
-}
+  );
+};

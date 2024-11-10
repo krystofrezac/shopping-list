@@ -1,7 +1,7 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { ShoppingListPage } from './pagess/ShoppingListPage/ShoppingListPage'
-import { Layout } from './components/Layout'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { ShoppingListPage } from "./pagess/ShoppingListPage/ShoppingListPage";
+import { Layout } from "./components/Layout";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const router = createBrowserRouter([
   {
@@ -9,22 +9,20 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: null
+        element: null,
       },
       {
         path: "/shopping-list/:id",
-        element: <ShoppingListPage />
-      }
+        element: <ShoppingListPage />,
+      },
+    ],
+  },
+]);
 
-    ]
-  }
-])
-
-const queryclient = new QueryClient()
+const queryclient = new QueryClient();
 
 export const App = () => (
   <QueryClientProvider client={queryclient}>
     <RouterProvider router={router} />
   </QueryClientProvider>
-)
-
+);
