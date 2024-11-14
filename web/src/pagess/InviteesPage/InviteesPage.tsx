@@ -8,12 +8,16 @@ import { IconButton } from "../../components/IconButton";
 import { Button } from "../../components/Button";
 import { InviteUserDialog } from "./InviteUserDialog";
 import { useState } from "react";
+import { RemoveUserDialog } from "./RemoveUserDialog";
 
 export const InviteesPage = () => {
   const params = useParams<{ id: string }>();
   const query = useShoppingListQuery({ id: params.id! });
 
   const [isInvitingUser, setIsInvitingUser] = useState(false);
+  const [userIdToRemove, setUserIdToRemove] = useState<string | undefined>(
+    undefined,
+  );
 
   const renderContent: RenderContent<ShoppingList> = (shoppingList) => {
     const mappedInvitess = shoppingList.invitees.map((invitee) => (
@@ -22,7 +26,12 @@ export const InviteesPage = () => {
           <div className="flex flex-row items-center gap-4">
             <p className="text-lg">{invitee.email}</p>
             <div className="flex flex row gap-1">
-              <IconButton iconName="TrashIcon" size="sm" color="error" />
+              <IconButton
+                iconName="TrashIcon"
+                size="sm"
+                color="error"
+                onClick={() => setUserIdToRemove(invitee.id)}
+              />
             </div>
           </div>
         </CardBody>
@@ -35,6 +44,11 @@ export const InviteesPage = () => {
           isOpen={isInvitingUser}
           shoppingListId={shoppingList.id}
           onClose={() => setIsInvitingUser(false)}
+        />
+        <RemoveUserDialog
+          userId={userIdToRemove}
+          shoppingListId={shoppingList.id}
+          onClose={() => setUserIdToRemove(undefined)}
         />
 
         <ShoppingListHeader
