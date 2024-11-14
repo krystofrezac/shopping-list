@@ -17,6 +17,10 @@ const DATA_MOCK: ShoppingList = {
       id: "2",
       email: "jozin@zbazin.cz",
     },
+    {
+      id: "3",
+      email: "mahulena@gmail.cz",
+    },
   ],
   items: [
     {

@@ -1,7 +1,7 @@
-export type H1Props = {
+export type HeadingProps = {
   children: string;
 };
 
-export const H1 = ({ children }: H1Props) => (
+export const H1 = ({ children }: HeadingProps) => (
   <h1 className="text-3xl">{children}</h1>
 );

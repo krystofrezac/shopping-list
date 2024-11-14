@@ -14,9 +14,11 @@ import { Dropdown } from "../../components/Dropdown";
 import { Menu } from "../../components/Menu";
 import { ListRenameDialog } from "./ListRenameDialog";
 import { useUserContext } from "../../contexts/UserContext";
+import { Link, useParams } from "react-router-dom";
+import { ShoppingListHeader } from "../../components/ShoppingListHeader";
 
 export const ShoppingListPage = () => {
-  const params = { id: "xxx" }; // TODO: useParams();
+  const params = useParams<{ id: string }>();
   const userContext = useUserContext();
 
   const query = useShoppingListQuery({ id: params.id! });
@@ -73,42 +75,57 @@ export const ShoppingListPage = () => {
           onClose={() => setIsRenameDialogOpen(false)}
         />
 
-        <div className="flex gap-4 items-center">
-          <div className="grow">
-            <H1>{shoppingList.name}</H1>
-            <p>{`Owner: ${shoppingList.owner.email}`}</p>
-          </div>
-          <div className="flex gap-2 items-center">
-            <Dropdown
-              activator={<IconButton iconName="EllipsisVerticalIcon" />}
-            >
-              <Menu
-                items={[
-                  {
-                    id: "rename",
-                    isHidden: !isUserOwner,
-                    element: (
-                      <button
-                        className="grow text-left"
-                        onClick={() => setIsRenameDialogOpen(true)}
-                      >
-                        Rename
-                      </button>
-                    ),
-                  },
-                  {
-                    id: "rename",
-                    isHidden: isUserOwner,
-                    element: <button className="grow text-left">Leave</button>,
-                  },
-                ]}
-              />
-            </Dropdown>
-            <Button variant="primary">Create new item</Button>
-          </div>
-        </div>
-        <div className="divider" />
-        <div className="mt-6">
+        <ShoppingListHeader
+          shoppingList={shoppingList}
+          backText="Back to shopping lists"
+          backPath="/"
+          rightElement={
+            <div className="flex gap-2 items-center">
+              <Dropdown
+                activator={<IconButton iconName="EllipsisVerticalIcon" />}
+              >
+                <Menu
+                  items={[
+                    {
+                      id: "rename",
+                      isHidden: !isUserOwner,
+                      element: (
+                        <button
+                          className="grow text-left"
+                          onClick={() => setIsRenameDialogOpen(true)}
+                        >
+                          Rename
+                        </button>
+                      ),
+                    },
+                    {
+                      id: "rename",
+                      isHidden: !isUserOwner,
+                      element: (
+                        <Link
+                          to={`/shopping-lists/${params.id}/invitees`}
+                          className="grow text-left"
+                          onClick={() => setIsRenameDialogOpen(true)}
+                        >
+                          Invitees managment
+                        </Link>
+                      ),
+                    },
+                    {
+                      id: "rename",
+                      isHidden: isUserOwner,
+                      element: (
+                        <button className="grow text-left">Leave</button>
+                      ),
+                    },
+                  ]}
+                />
+              </Dropdown>
+              <Button variant="primary">Create new item</Button>
+            </div>
+          }
+        />
+        <div>
           <CheckBoxFormControl label="Show completed">
             <CheckBox
               checked={showCompleted}

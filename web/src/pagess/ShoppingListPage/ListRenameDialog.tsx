@@ -63,7 +63,7 @@ const ListRenameDialogContent = ({
       },
       {
         onSuccess: () => {
-          queryClient.setQueryData(
+          queryClient.setQueryData<ShoppingList>(
             getShoppingListQueryKey(shoppingList.id),
             (data) => {
               if (!data) return;
