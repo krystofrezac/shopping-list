@@ -15,7 +15,9 @@ export type MenuProps = {
 export const Menu = ({ items, title }: MenuProps) => {
   const mappedItems = items.map((item) => (
     <li key={item.id}>
-      <div className={classNames({ active: item.active })}>{item.element}</div>
+      <div className={classNames("flex", { active: item.active })}>
+        {item.element}
+      </div>
     </li>
   ));
   return (

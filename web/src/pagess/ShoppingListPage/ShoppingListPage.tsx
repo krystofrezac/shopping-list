@@ -11,6 +11,9 @@ import { CheckBox } from "../../components/CheckBox";
 import { ItemEditDialog } from "./ItemEditDialog";
 import { CheckBoxFormControl } from "../../components/CheckBoxFormControl";
 import { ItemDeleteDialog } from "./ItemDeleteDialog";
+import { Dropdown } from "../../components/Dropdown";
+import { Menu } from "../../components/Menu";
+import { ListRenameDialog } from "./ListRenameDialog";
 
 export const ShoppingListPage = () => {
   const params = { id: "xxx" }; // TODO: useParams();
@@ -24,6 +27,7 @@ export const ShoppingListPage = () => {
   const [deletingItemIndex, setDeletingItemIndex] = useState<
     number | undefined
   >(undefined);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
   const renderContent: RenderContent<ShoppingList> = (shoppingList) => {
     const items = shoppingList.items.filter(
@@ -62,6 +66,11 @@ export const ShoppingListPage = () => {
           item={shoppingList.items[deletingItemIndex ?? -1]}
           onClose={() => setDeletingItemIndex(undefined)}
         />
+        <ListRenameDialog
+          shoppingList={isRenameDialogOpen ? shoppingList : undefined}
+          onClose={() => setIsRenameDialogOpen(false)}
+        />
+
         <div className="flex gap-4 items-center">
           <div className="grow">
             <H1>{shoppingList.name}</H1>
@@ -69,7 +78,25 @@ export const ShoppingListPage = () => {
           </div>
           <div className="flex gap-2 items-center">
             <UserGuard userId={shoppingList.owner.id}>
-              <IconButton iconName="EllipsisVerticalIcon" />
+              <Dropdown
+                activator={<IconButton iconName="EllipsisVerticalIcon" />}
+              >
+                <Menu
+                  items={[
+                    {
+                      id: "rename",
+                      element: (
+                        <button
+                          className="grow text-left"
+                          onClick={() => setIsRenameDialogOpen(true)}
+                        >
+                          Rename
+                        </button>
+                      ),
+                    },
+                  ]}
+                />
+              </Dropdown>
             </UserGuard>
             <Button variant="primary">Create new item</Button>
           </div>

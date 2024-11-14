@@ -21,9 +21,11 @@ export const useUpdateShoppingListItemMutation = (
   useMutation({
     ...options,
     mutationFn: ({ shoppingListId, shoppingListItemIndex, data }) => {
-      alert(
-        `Calling api to update shopping list item. \n${shoppingListId}\n${shoppingListItemIndex}\n${JSON.stringify(data)}]`,
-      );
+      console.log(`Calling api to update shopping list item`, {
+        shoppingListId,
+        shoppingListItemIndex,
+        data,
+      });
 
       return new Promise((resolve) => {
         setTimeout(() => resolve(data), 1000);

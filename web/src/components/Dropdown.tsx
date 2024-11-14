@@ -11,7 +11,10 @@ export const Dropdown = ({ activator, children }: DropdownProps) => {
       <div tabIndex={0} role="button">
         {activator}
       </div>
-      <div className="dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow text-primary-content">
+      <div
+        tabIndex={0}
+        className="dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow text-primary-content"
+      >
         {children}
       </div>
     </div>
