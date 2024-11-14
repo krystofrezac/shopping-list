@@ -20,7 +20,16 @@ const router = createBrowserRouter([
   },
 ]);
 
-const queryclient = new QueryClient();
+const queryclient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      onError: () => alert("Something went wrong"),
+    },
+  },
+});
 
 export const App = () => (
   <QueryClientProvider client={queryclient}>

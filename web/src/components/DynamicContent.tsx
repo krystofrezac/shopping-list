@@ -20,7 +20,7 @@ export const DynamicContent = <TData,>({
 
   if (error || data === undefined)
     // TODO: make it nicer
-    return "Nastala neočekávaná chyba";
+    return "Unexpected error occured";
 
   return renderContent(data);
 };

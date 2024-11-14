@@ -10,6 +10,7 @@ import { ShoppingListItem } from "./ShoppingListItem";
 import { CheckBox } from "../../components/CheckBox";
 import { ItemEditDialog } from "./ItemEditDialog";
 import { CheckBoxFormControl } from "../../components/CheckBoxFormControl";
+import { ItemDeleteDialog } from "./ItemDeleteDialog";
 
 export const ShoppingListPage = () => {
   const params = { id: "xxx" }; // TODO: useParams();
@@ -17,22 +18,35 @@ export const ShoppingListPage = () => {
   const query = useShoppingListQuery({ id: params.id! });
 
   const [showCompleted, setShowCompleted] = useState(false);
-  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | undefined>(
+    undefined,
+  );
+  const [deletingItemIndex, setDeletingItemIndex] = useState<
+    number | undefined
+  >(undefined);
 
   const renderContent: RenderContent<ShoppingList> = (shoppingList) => {
     const items = shoppingList.items.filter(
       (item) => showCompleted || !item.completed,
     );
 
-    const mappedItems = items.map((item, index) => (
-      <ShoppingListItem
-        key={index}
-        index={index}
-        item={item}
-        shoppingListId={shoppingList.id}
-        onEdit={() => setEditingItemIndex(index)}
-      />
-    ));
+    const mappedItems = items
+      .map((item, index) => {
+        if (item.archived) return null;
+        if (!showCompleted && item.completed) return null;
+
+        return (
+          <ShoppingListItem
+            key={index}
+            index={index}
+            item={item}
+            shoppingListId={shoppingList.id}
+            onEdit={() => setEditingItemIndex(index)}
+            onDelete={() => setDeletingItemIndex(index)}
+          />
+        );
+      })
+      .filter(Boolean);
 
     return (
       <>
@@ -40,7 +54,13 @@ export const ShoppingListPage = () => {
           index={editingItemIndex ?? -1}
           shoppingListId={shoppingList.id}
           item={shoppingList.items[editingItemIndex ?? -1]}
-          onClose={() => setEditingItemIndex(null)}
+          onClose={() => setEditingItemIndex(undefined)}
+        />
+        <ItemDeleteDialog
+          index={deletingItemIndex}
+          shoppingList={shoppingList}
+          item={shoppingList.items[deletingItemIndex ?? -1]}
+          onClose={() => setDeletingItemIndex(undefined)}
         />
         <div className="flex gap-4 items-center">
           <div className="grow">
@@ -62,7 +82,12 @@ export const ShoppingListPage = () => {
               onChange={() => setShowCompleted((prev) => !prev)}
             />
           </CheckBoxFormControl>
-          <div className="mt-2 flex flex-col gap-2">{mappedItems}</div>
+          <div className="mt-2 flex flex-col gap-2">
+            {mappedItems}
+            {mappedItems.length === 0 && (
+              <p className="flex justify-center text-xl">No items</p>
+            )}
+          </div>
         </div>
       </>
     );

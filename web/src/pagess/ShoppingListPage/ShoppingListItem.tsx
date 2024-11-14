@@ -11,6 +11,7 @@ export type ShoppingListItemProps = {
   item: ShoppingListeItemType;
   index: number;
   onEdit: () => void;
+  onDelete: () => void;
 };
 
 export const ShoppingListItem = ({
@@ -18,6 +19,7 @@ export const ShoppingListItem = ({
   index,
   item,
   onEdit,
+  onDelete,
 }: ShoppingListItemProps) => {
   const {
     mutate: updateShoppingListItem,
@@ -63,7 +65,7 @@ export const ShoppingListItem = ({
               iconName="TrashIcon"
               size="sm"
               color="error"
-              onClick={onEdit}
+              onClick={onDelete}
             />
             <IconButton iconName="PencilIcon" size="sm" onClick={onEdit} />
           </div>

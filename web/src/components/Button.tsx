@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { Spinner } from "./Spinner";
 
-export type ButtonVariant = "basic" | "primary";
+export type ButtonVariant = "basic" | "primary" | "error";
 
 export type ButtonProps = React.DetailedHTMLProps<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -14,6 +14,7 @@ export type ButtonProps = React.DetailedHTMLProps<
 const variantClasses: Record<ButtonVariant, string> = {
   primary: "btn-primary",
   basic: "",
+  error: "btn-error",
 };
 
 export const Button = ({
