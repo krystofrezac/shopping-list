@@ -4,7 +4,6 @@ import { ShoppingList } from "../../api/types";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { H1 } from "../../components/Typography";
-import { UserGuard } from "../../components/UserGuard";
 import { useState } from "react";
 import { ShoppingListItem } from "./ShoppingListItem";
 import { CheckBox } from "../../components/CheckBox";
@@ -14,9 +13,11 @@ import { ItemDeleteDialog } from "./ItemDeleteDialog";
 import { Dropdown } from "../../components/Dropdown";
 import { Menu } from "../../components/Menu";
 import { ListRenameDialog } from "./ListRenameDialog";
+import { useUserContext } from "../../contexts/UserContext";
 
 export const ShoppingListPage = () => {
   const params = { id: "xxx" }; // TODO: useParams();
+  const userContext = useUserContext();
 
   const query = useShoppingListQuery({ id: params.id! });
 
@@ -30,6 +31,7 @@ export const ShoppingListPage = () => {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
   const renderContent: RenderContent<ShoppingList> = (shoppingList) => {
+    const isUserOwner = userContext.currentUserId === shoppingList.owner.id;
     const items = shoppingList.items.filter(
       (item) => showCompleted || !item.completed,
     );
@@ -77,27 +79,31 @@ export const ShoppingListPage = () => {
             <p>{`Owner: ${shoppingList.owner.email}`}</p>
           </div>
           <div className="flex gap-2 items-center">
-            <UserGuard userId={shoppingList.owner.id}>
-              <Dropdown
-                activator={<IconButton iconName="EllipsisVerticalIcon" />}
-              >
-                <Menu
-                  items={[
-                    {
-                      id: "rename",
-                      element: (
-                        <button
-                          className="grow text-left"
-                          onClick={() => setIsRenameDialogOpen(true)}
-                        >
-                          Rename
-                        </button>
-                      ),
-                    },
-                  ]}
-                />
-              </Dropdown>
-            </UserGuard>
+            <Dropdown
+              activator={<IconButton iconName="EllipsisVerticalIcon" />}
+            >
+              <Menu
+                items={[
+                  {
+                    id: "rename",
+                    isHidden: !isUserOwner,
+                    element: (
+                      <button
+                        className="grow text-left"
+                        onClick={() => setIsRenameDialogOpen(true)}
+                      >
+                        Rename
+                      </button>
+                    ),
+                  },
+                  {
+                    id: "rename",
+                    isHidden: isUserOwner,
+                    element: <button className="grow text-left">Leave</button>,
+                  },
+                ]}
+              />
+            </Dropdown>
             <Button variant="primary">Create new item</Button>
           </div>
         </div>

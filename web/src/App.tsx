@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Link, RouterProvider } from "react-router-dom";
 import { ShoppingListPage } from "./pagess/ShoppingListPage/ShoppingListPage";
 import { Layout } from "./components/Layout/Layout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,7 +10,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: null,
+        element: (
+          <Link to="/shopping-list/a" className="btn btn-primary">
+            Go to shopping list
+          </Link>
+        ),
       },
       {
         path: "/shopping-list/:id",

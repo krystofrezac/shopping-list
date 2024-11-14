@@ -16,11 +16,20 @@ export const DynamicContent = <TData,>({
   error,
   renderContent,
 }: DynamicContentProps<TData>) => {
-  if (isPending) return <Spinner />;
+  if (isPending)
+    return (
+      <div className="flex justify-center">
+        {" "}
+        <Spinner />
+      </div>
+    );
 
   if (error || data === undefined)
-    // TODO: make it nicer
-    return "Unexpected error occured";
+    return (
+      <div className="flex justify-center text-xl">
+        Unexpected error occured
+      </div>
+    );
 
   return renderContent(data);
 };

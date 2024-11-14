@@ -12,7 +12,7 @@ export const UserPicker = () => {
     return {
       id: user.id,
       element: <button onClick={handleClick}>{user.email}</button>,
-      active: user.id === userContext.currentUserId,
+      isActive: user.id === userContext.currentUserId,
     };
   });
 
