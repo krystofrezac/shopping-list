@@ -19,7 +19,7 @@ const DATA_MOCK: ShoppingList = {
     },
     {
       id: "3",
-      email: "mahulena@gmail.cz",
+      email: "mahulena@gmail.com",
     },
   ],
   items: [
@@ -29,12 +29,12 @@ const DATA_MOCK: ShoppingList = {
       archived: false,
     },
     {
-      name: "2x Apple",
+      name: "2x Banana",
       completed: false,
       archived: false,
     },
     {
-      name: "2x Apple",
+      name: "2x Orange",
       completed: true,
       archived: false,
     },

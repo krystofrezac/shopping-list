@@ -33,6 +33,8 @@ const queryclient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
+      // TODO: disable after api
+      refetchOnMount: false,
     },
     mutations: {
       onError: () => alert("Something went wrong"),

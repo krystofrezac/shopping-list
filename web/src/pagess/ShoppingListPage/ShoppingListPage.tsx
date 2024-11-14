@@ -3,7 +3,6 @@ import { DynamicContent, RenderContent } from "../../components/DynamicContent";
 import { ShoppingList } from "../../api/types";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
-import { H1 } from "../../components/Typography";
 import { useState } from "react";
 import { ShoppingListItem } from "./ShoppingListItem";
 import { CheckBox } from "../../components/CheckBox";
@@ -16,6 +15,7 @@ import { ListRenameDialog } from "./ListRenameDialog";
 import { useUserContext } from "../../contexts/UserContext";
 import { Link, useParams } from "react-router-dom";
 import { ShoppingListHeader } from "../../components/ShoppingListHeader";
+import { ItemCreateDialog } from "./ItemCreateDialog";
 
 export const ShoppingListPage = () => {
   const params = useParams<{ id: string }>();
@@ -31,6 +31,7 @@ export const ShoppingListPage = () => {
     number | undefined
   >(undefined);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [isCreateItemDialogOpen, setIsCreateItemDialogOpen] = useState(false);
 
   const renderContent: RenderContent<ShoppingList> = (shoppingList) => {
     const isUserOwner = userContext.currentUserId === shoppingList.owner.id;
@@ -74,6 +75,11 @@ export const ShoppingListPage = () => {
           shoppingList={isRenameDialogOpen ? shoppingList : undefined}
           onClose={() => setIsRenameDialogOpen(false)}
         />
+        <ItemCreateDialog
+          isOpen={isCreateItemDialogOpen}
+          shoppingListId={shoppingList.id}
+          onClose={() => setIsCreateItemDialogOpen(false)}
+        />
 
         <ShoppingListHeader
           shoppingList={shoppingList}
@@ -99,7 +105,7 @@ export const ShoppingListPage = () => {
                       ),
                     },
                     {
-                      id: "rename",
+                      id: "invitees",
                       isHidden: !isUserOwner,
                       element: (
                         <Link
@@ -121,7 +127,12 @@ export const ShoppingListPage = () => {
                   ]}
                 />
               </Dropdown>
-              <Button variant="primary">Create new item</Button>
+              <Button
+                variant="primary"
+                onClick={() => setIsCreateItemDialogOpen(true)}
+              >
+                Create new item
+              </Button>
             </div>
           }
         />

@@ -3,7 +3,7 @@ import { createContext, PropsWithChildren, useContext, useState } from "react";
 export const AVAILABLE_USERS = [
   {
     id: "1",
-    email: "pepa@zleasa.com",
+    email: "pepa@zlesa.com",
   },
   {
     id: "2",

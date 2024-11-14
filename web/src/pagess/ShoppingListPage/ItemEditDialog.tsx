@@ -1,4 +1,4 @@
-import { FormEventHandler, useState } from "react";
+import { FormEventHandler, useEffect, useState } from "react";
 import { Button } from "../../components/Button";
 import {
   DialogActions,
@@ -43,6 +43,10 @@ const ItemEditDialogContent = ({
   const [name, setName] = useState(item.name);
   const [errors, setErrors] = useState<Errors>({});
 
+  useEffect(() => {
+    setName(item.name);
+  }, [item]);
+
   const { mutate, isPending } = useUpdateShoppingListItemMutation();
   const updateItemQueryCache = useGetUpdateItemQueryCache();
 
@@ -79,7 +83,7 @@ const ItemEditDialogContent = ({
 
   return (
     <>
-      <DialogTitle> Edit item</DialogTitle>
+      <DialogTitle>Edit item</DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogBody>
           <TextInput
