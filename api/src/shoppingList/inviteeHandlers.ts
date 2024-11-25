@@ -2,6 +2,8 @@ import { Handler } from "express";
 import { z } from "zod";
 import { sendInputValidationError } from "../helpers/sendInputValidationError";
 import { StatusCodes } from "http-status-codes";
+import { isOwnerOfList } from "../helpers/isOwnerOfList";
+import { canAccessList } from "../helpers/canAccessList";
 
 const listShoppingListInviteesParamsSchema = z.object({
   shoppingListId: z.string(),
@@ -12,6 +14,12 @@ export const listShoppingListInviteesHandler: Handler = (req, res) => {
   );
   if (!paramsValidation.success)
     return sendInputValidationError(res, "params", paramsValidation.error);
+  const params = paramsValidation.data;
+
+  if (!req.userId || !canAccessList(req.userId, params.shoppingListId)) {
+    res.sendStatus(StatusCodes.UNAUTHORIZED);
+    return;
+  }
 
   res.json([]);
 };
@@ -20,7 +28,7 @@ const inviteUserToShoppingListParamsSchema = z.object({
   shoppingListId: z.string(),
 });
 const inviteUserToShoppingListBodySchema = z.object({
-  userId: z.string(),
+  email: z.string(),
 });
 export const inviteUserToShoppingListHandler: Handler = (req, res) => {
   const paramsValidation = inviteUserToShoppingListParamsSchema.safeParse(
@@ -28,14 +36,21 @@ export const inviteUserToShoppingListHandler: Handler = (req, res) => {
   );
   if (!paramsValidation.success)
     return sendInputValidationError(res, "params", paramsValidation.error);
+  const params = paramsValidation.data;
 
   const bodyValidation = inviteUserToShoppingListBodySchema.safeParse(req.body);
   if (!bodyValidation.success)
     return sendInputValidationError(res, "body", bodyValidation.error);
+  const body = bodyValidation.data;
+
+  if (!req.userId || !isOwnerOfList(req.userId, params.shoppingListId)) {
+    res.sendStatus(StatusCodes.UNAUTHORIZED);
+    return;
+  }
 
   res.status(StatusCodes.CREATED).json({
     id: "",
-    email: "",
+    email: body.email,
   });
 };
 
@@ -49,6 +64,12 @@ export const removeInviteeFromShoppingListHandler: Handler = (req, res) => {
   );
   if (!paramsValidation.success)
     return sendInputValidationError(res, "params", paramsValidation.error);
+  const params = paramsValidation.data;
+
+  if (!req.userId || !isOwnerOfList(req.userId, params.shoppingListId)) {
+    res.sendStatus(StatusCodes.UNAUTHORIZED);
+    return;
+  }
 
   res.sendStatus(StatusCodes.OK);
 };
