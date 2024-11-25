@@ -10,8 +10,14 @@ export const createShoppingListHandler: Handler = (req, res) => {
   const bodyValidation = createShoppingListBodySchema.safeParse(req.body);
   if (!bodyValidation.success)
     return sendInputValidationError(res, "body", bodyValidation.error);
+  const body = bodyValidation.data;
 
-  res.sendStatus(StatusCodes.CREATED);
+  res.status(StatusCodes.CREATED).json({
+    id: "",
+    name: body.name,
+    ownerId: "",
+    ownerEmail: "",
+  });
 };
 
 export const listShoppingListsHandler: Handler = (_req, res) => {

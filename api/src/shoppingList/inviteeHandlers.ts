@@ -33,7 +33,10 @@ export const inviteUserToShoppingListHandler: Handler = (req, res) => {
   if (!bodyValidation.success)
     return sendInputValidationError(res, "body", bodyValidation.error);
 
-  res.sendStatus(StatusCodes.CREATED);
+  res.status(StatusCodes.CREATED).json({
+    id: "",
+    email: "",
+  });
 };
 
 const removeInviteeFromShoppingListParamsSchema = z.object({

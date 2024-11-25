@@ -46,6 +46,11 @@ export const updateShoppingListItemHandler: Handler = (req, res) => {
   const bodyValidation = updateShoppingListItemBodySchema.safeParse(req.body);
   if (!bodyValidation.success)
     return sendInputValidationError(res, "body", bodyValidation.error);
+  const body = bodyValidation.data;
 
-  res.json({});
+  res.json({
+    name: body.name,
+    completed: body.completed,
+    archived: body.archived,
+  });
 };
