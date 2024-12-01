@@ -12,6 +12,12 @@ export type ShoppingList = {
   id: string;
   name: string;
   owner: User;
+  archived: boolean;
   invitees: User[];
   items: ShoppingListItem[];
 };
+
+export type ShoppingListOverview = Pick<
+  ShoppingList,
+  "id" | "name" | "owner" | "archived"
+>;

@@ -12,6 +12,7 @@ const DATA_MOCK: ShoppingList = {
     id: "1",
     email: "pepa@zlesa.com",
   },
+  archived: false,
   invitees: [
     {
       id: "2",

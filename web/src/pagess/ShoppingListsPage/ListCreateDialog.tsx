@@ -7,31 +7,30 @@ import {
   DialogTitle,
 } from "../../components/Dialog";
 import { TextInput } from "../../components/TextInput";
-
-import { ShoppingList } from "../../api/types";
-import { useCreateShoppingListItemMutation } from "../../api/useCreateShoppingListItemMutation";
+import { useCreateShoppingListMutation } from "../../api/useCreateShoppingListMutation";
 import { useQueryClient } from "@tanstack/react-query";
-import { getShoppingListQueryKey } from "../../api/useShoppingListQuery";
+import { SHOPPING_LISTS_QUERY_KEY } from "../../api/useShoppingListsQuery";
+import { ShoppingListOverview } from "../../api/types";
 
-type ItemCreateDialogProps = {
+export type ListCreateDialogProps = {
   isOpen: boolean;
-  shoppingListId: string;
   onClose: () => void;
 };
 
 type Errors = {
   name?: string;
 };
-export const ItemCreateDialog = ({
+
+export const ListCreateDialog = ({
   isOpen,
-  shoppingListId,
   onClose,
-}: ItemCreateDialogProps) => {
+}: ListCreateDialogProps) => {
   const [name, setName] = useState("");
   const [errors, setErrors] = useState<Errors>({});
 
   const queryClient = useQueryClient();
-  const { mutate, isPending } = useCreateShoppingListItemMutation();
+  const { mutate: createShoppingList, isPending: isCreateShoppingListPending } =
+    useCreateShoppingListMutation();
 
   const handleSubmit: FormEventHandler = (e) => {
     e.preventDefault();
@@ -40,28 +39,23 @@ export const ItemCreateDialog = ({
     if (name.trim().length === 0) newErrors.name = "Name cannot be empty";
 
     setErrors(newErrors);
-    if (Object.entries(newErrors).length !== 0) return;
+    if (Object.values(newErrors).length > 0) return;
 
-    mutate(
+    createShoppingList(
       {
-        shoppingListId,
         name,
       },
       {
-        onSuccess: (newItem) => {
-          queryClient.setQueryData<ShoppingList>(
-            getShoppingListQueryKey(shoppingListId),
-            (data) => {
-              if (!data) return;
+        onSuccess: (newShoppingList) => {
+          queryClient.setQueryData<ShoppingListOverview[]>(
+            SHOPPING_LISTS_QUERY_KEY,
+            (prev) => {
+              if (!prev) return;
 
-              return {
-                ...data,
-                items: [...data.items, newItem],
-              };
+              return [...prev, newShoppingList];
             },
           );
           onClose();
-          setName("");
         },
       },
     );
@@ -69,11 +63,10 @@ export const ItemCreateDialog = ({
 
   return (
     <Dialog isOpen={isOpen}>
-      <DialogTitle>Create item</DialogTitle>
+      <DialogTitle>Create new shopping list</DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogBody>
           <TextInput
-            name="name"
             label="Name"
             value={name}
             error={errors.name}
@@ -81,10 +74,14 @@ export const ItemCreateDialog = ({
           />
         </DialogBody>
         <DialogActions>
-          <Button isLoading={isPending} onClick={onClose}>
+          <Button isLoading={isCreateShoppingListPending} onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" isLoading={isPending}>
+          <Button
+            type="submit"
+            variant="primary"
+            isLoading={isCreateShoppingListPending}
+          >
             Create
           </Button>
         </DialogActions>

@@ -1,9 +1,10 @@
-import { createBrowserRouter, Link, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { ShoppingListPage } from "./pagess/ShoppingListPage/ShoppingListPage";
 import { Layout } from "./components/Layout/Layout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { UserProvider } from "./contexts/UserContext";
 import { InviteesPage } from "./pagess/InviteesPage/InviteesPage";
+import { ShoppingListsPage } from "./pagess/ShoppingListsPage/ShoppingListsPage";
 
 const router = createBrowserRouter([
   {
@@ -11,11 +12,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: (
-          <Link to="/shopping-lists/xxx" className="btn btn-primary">
-            Go to shopping list
-          </Link>
-        ),
+        element: <ShoppingListsPage />,
       },
       {
         path: "/shopping-lists/:id",

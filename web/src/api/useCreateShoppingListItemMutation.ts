@@ -1,17 +1,21 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { ShoppingListItem } from "./types";
 
-export type CreatehoppingListItemVariables = {
+export type CreateShoppingListItemVariables = {
   shoppingListId: string;
   name: string;
 };
-export type UseCreatehoppingListItemMutationParams = Omit<
-  UseMutationOptions<ShoppingListItem, unknown, CreatehoppingListItemVariables>,
+export type UseCreateShoppingListItemMutationParams = Omit<
+  UseMutationOptions<
+    ShoppingListItem,
+    unknown,
+    CreateShoppingListItemVariables
+  >,
   "mutationFn"
 >;
 
-export const useCreatehoppingListItemMutation = (
-  options?: UseCreatehoppingListItemMutationParams,
+export const useCreateShoppingListItemMutation = (
+  options?: UseCreateShoppingListItemMutationParams,
 ) =>
   useMutation({
     ...options,
