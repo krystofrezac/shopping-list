@@ -18,9 +18,10 @@ import {
 } from "./shoppingList/inviteeHandlers";
 import { parseAuthorization } from "./middlewares/parseAuthorization";
 import mongoose from "mongoose";
+import { env } from "./env";
 
 const main = async () => {
-  await mongoose.connect("mongodb://localhost:27017/shopping-list")
+  await mongoose.connect(env.MONGO_URI);
 
   const app = express();
   app.use(express.json());
@@ -34,8 +35,14 @@ const main = async () => {
   app.get("/shopping-lists/:id", getShoppingListHandler);
   app.delete("/shopping-lists/:id", deleteShoppingListHandler);
 
-  app.get("/shopping-lists/:shoppingListId/items", listShoppingListItemsHandler);
-  app.post("/shopping-lists/:shoppingListId/item", createShoppingListItemHandler);
+  app.get(
+    "/shopping-lists/:shoppingListId/items",
+    listShoppingListItemsHandler,
+  );
+  app.post(
+    "/shopping-lists/:shoppingListId/item",
+    createShoppingListItemHandler,
+  );
   app.put(
     "/shopping-lists/:shoppingListId/item/:itemIndex",
     updateShoppingListItemHandler,
@@ -54,10 +61,9 @@ const main = async () => {
     removeInviteeFromShoppingListHandler,
   );
 
-
   app.listen(4000, () => {
     console.log("listening on https://localhost:4000");
   });
-}
+};
 
-main()
+main();
