@@ -17,39 +17,47 @@ import {
   removeInviteeFromShoppingListHandler,
 } from "./shoppingList/inviteeHandlers";
 import { parseAuthorization } from "./middlewares/parseAuthorization";
+import mongoose from "mongoose";
 
-const app = express();
-app.use(express.json());
-app.use(parseAuthorization);
+const main = async () => {
+  await mongoose.connect("mongodb://localhost:27017/shopping-list")
 
-app.post("/user/register", registerUserHandler);
-app.post("/user/login", loginUserHandler);
+  const app = express();
+  app.use(express.json());
+  app.use(parseAuthorization);
 
-app.post("/shopping-list", createShoppingListHandler);
-app.get("/shopping-lists", listShoppingListsHandler);
-app.get("/shopping-lists/:id", getShoppingListHandler);
-app.delete("/shopping-lists/:id", deleteShoppingListHandler);
+  app.post("/user/register", registerUserHandler);
+  app.post("/user/login", loginUserHandler);
 
-app.get("/shopping-lists/:shoppingListId/items", listShoppingListItemsHandler);
-app.post("/shopping-lists/:shoppingListId/item", createShoppingListItemHandler);
-app.put(
-  "/shopping-lists/:shoppingListId/item/:itemIndex",
-  updateShoppingListItemHandler,
-);
+  app.post("/shopping-list", createShoppingListHandler);
+  app.get("/shopping-lists", listShoppingListsHandler);
+  app.get("/shopping-lists/:id", getShoppingListHandler);
+  app.delete("/shopping-lists/:id", deleteShoppingListHandler);
 
-app.get(
-  "/shopping-lists/:shoppingListId/invitees",
-  listShoppingListInviteesHandler,
-);
-app.post(
-  "/shopping-lists/:shoppingListId/invite",
-  inviteUserToShoppingListHandler,
-);
-app.delete(
-  "/shopping-lists/:shoppingListId/invite/:userId",
-  removeInviteeFromShoppingListHandler,
-);
+  app.get("/shopping-lists/:shoppingListId/items", listShoppingListItemsHandler);
+  app.post("/shopping-lists/:shoppingListId/item", createShoppingListItemHandler);
+  app.put(
+    "/shopping-lists/:shoppingListId/item/:itemIndex",
+    updateShoppingListItemHandler,
+  );
 
-app.listen(4000, () => {
-  console.log("listening on https://localhost:4000");
-});
+  app.get(
+    "/shopping-lists/:shoppingListId/invitees",
+    listShoppingListInviteesHandler,
+  );
+  app.post(
+    "/shopping-lists/:shoppingListId/invite",
+    inviteUserToShoppingListHandler,
+  );
+  app.delete(
+    "/shopping-lists/:shoppingListId/invite/:userId",
+    removeInviteeFromShoppingListHandler,
+  );
+
+
+  app.listen(4000, () => {
+    console.log("listening on https://localhost:4000");
+  });
+}
+
+main()
