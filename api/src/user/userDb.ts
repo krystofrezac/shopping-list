@@ -7,7 +7,7 @@ export type User = {
   hashedPassword: string;
 };
 
-const UserModel = mongoose.model<User>(
+const UserModel = mongoose.model(
   "user",
   new Schema({
     email: { type: String, required: true, unique: true },
@@ -28,8 +28,9 @@ export const createUser = (
         hashedPassword: res.hashedPassword,
       }),
     )
-    .catch((e) => {
-      if (e.code === 11000) return Err("emailAlreadyExists");
+    .catch((err) => {
+      console.error(err);
+      if (err.code === 11000) return Err("emailAlreadyExists");
       return Err("unknown");
     });
 
@@ -46,7 +47,8 @@ export const findUserByEmail = async (
       email: res.email,
       hashedPassword: res.hashedPassword,
     });
-  } catch {
+  } catch (err) {
+    console.log(err);
     return Err("unknown");
   }
 };

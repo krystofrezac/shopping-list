@@ -8,14 +8,18 @@ import { canAccessList } from "../helpers/canAccessList";
 const listShoppingListItemsParamsSchema = z.object({
   shoppingListId: z.string(),
 });
-export const listShoppingListItemsHandler: Handler = (req, res) => {
+export const listShoppingListItemsHandler: Handler = async (req, res) => {
   const paramsValidation = listShoppingListItemsParamsSchema.safeParse(
     req.params,
   );
   if (!paramsValidation.success)
     return sendInputValidationError(res, "params", paramsValidation.error);
+  const params = paramsValidation.data;
 
-  if (!req.userId) {
+  if (
+    !req.userId ||
+    !(await canAccessList(req.userId, params.shoppingListId))
+  ) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
     return;
   }
@@ -29,7 +33,7 @@ const createShoppingListItemParamsSchema = z.object({
 const createShoppingListItemBodySchema = z.object({
   name: z.string().min(1),
 });
-export const createShoppingListItemHandler: Handler = (req, res) => {
+export const createShoppingListItemHandler: Handler = async (req, res) => {
   const paramsValidation = createShoppingListItemParamsSchema.safeParse(
     req.params,
   );
@@ -41,7 +45,10 @@ export const createShoppingListItemHandler: Handler = (req, res) => {
   if (!bodyValidation.success)
     return sendInputValidationError(res, "body", bodyValidation.error);
 
-  if (!req.userId || !isOwnerOfList(req.userId, params.shoppingListId)) {
+  if (
+    !req.userId ||
+    !(await canAccessList(req.userId, params.shoppingListId))
+  ) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
     return;
   }
@@ -58,7 +65,7 @@ const updateShoppingListItemBodySchema = z.object({
   completed: z.boolean(),
   archived: z.boolean(),
 });
-export const updateShoppingListItemHandler: Handler = (req, res) => {
+export const updateShoppingListItemHandler: Handler = async (req, res) => {
   const paramsValidation = updateShoppingListItemParamsSchema.safeParse(
     req.params,
   );
@@ -71,7 +78,10 @@ export const updateShoppingListItemHandler: Handler = (req, res) => {
     return sendInputValidationError(res, "body", bodyValidation.error);
   const body = bodyValidation.data;
 
-  if (!req.userId || !canAccessList(req.userId, params.shoppingListId)) {
+  if (
+    !req.userId ||
+    !(await canAccessList(req.userId, params.shoppingListId))
+  ) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
     return;
   }

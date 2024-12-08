@@ -8,7 +8,7 @@ import { canAccessList } from "../helpers/canAccessList";
 const listShoppingListInviteesParamsSchema = z.object({
   shoppingListId: z.string(),
 });
-export const listShoppingListInviteesHandler: Handler = (req, res) => {
+export const listShoppingListInviteesHandler: Handler = async (req, res) => {
   const paramsValidation = listShoppingListInviteesParamsSchema.safeParse(
     req.params,
   );
@@ -16,7 +16,10 @@ export const listShoppingListInviteesHandler: Handler = (req, res) => {
     return sendInputValidationError(res, "params", paramsValidation.error);
   const params = paramsValidation.data;
 
-  if (!req.userId || !canAccessList(req.userId, params.shoppingListId)) {
+  if (
+    !req.userId ||
+    !(await canAccessList(req.userId, params.shoppingListId))
+  ) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
     return;
   }
@@ -30,7 +33,7 @@ const inviteUserToShoppingListParamsSchema = z.object({
 const inviteUserToShoppingListBodySchema = z.object({
   email: z.string(),
 });
-export const inviteUserToShoppingListHandler: Handler = (req, res) => {
+export const inviteUserToShoppingListHandler: Handler = async (req, res) => {
   const paramsValidation = inviteUserToShoppingListParamsSchema.safeParse(
     req.params,
   );
@@ -43,7 +46,10 @@ export const inviteUserToShoppingListHandler: Handler = (req, res) => {
     return sendInputValidationError(res, "body", bodyValidation.error);
   const body = bodyValidation.data;
 
-  if (!req.userId || !isOwnerOfList(req.userId, params.shoppingListId)) {
+  if (
+    !req.userId ||
+    !(await isOwnerOfList(req.userId, params.shoppingListId))
+  ) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
     return;
   }
@@ -58,7 +64,10 @@ const removeInviteeFromShoppingListParamsSchema = z.object({
   shoppingListId: z.string(),
   userId: z.string(),
 });
-export const removeInviteeFromShoppingListHandler: Handler = (req, res) => {
+export const removeInviteeFromShoppingListHandler: Handler = async (
+  req,
+  res,
+) => {
   const paramsValidation = removeInviteeFromShoppingListParamsSchema.safeParse(
     req.params,
   );
@@ -66,7 +75,10 @@ export const removeInviteeFromShoppingListHandler: Handler = (req, res) => {
     return sendInputValidationError(res, "params", paramsValidation.error);
   const params = paramsValidation.data;
 
-  if (!req.userId || !isOwnerOfList(req.userId, params.shoppingListId)) {
+  if (
+    !req.userId ||
+    !(await isOwnerOfList(req.userId, params.shoppingListId))
+  ) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
     return;
   }
