@@ -3,7 +3,13 @@ import { z } from "zod";
 import { sendInputValidationError } from "../helpers/sendInputValidationError";
 import { StatusCodes } from "http-status-codes";
 import { isOwnerOfList } from "../helpers/isOwnerOfList";
-import { canAccessList } from "../helpers/canAccessList";
+import {
+  addInviteeToShoppingList,
+  getShoppingList,
+  getShoppingListDetailedInvitees,
+  removeInviteeToShoppingList,
+} from "../user/shoppingListDb";
+import { findUserByEmail } from "../user/userDb";
 
 const listShoppingListInviteesParamsSchema = z.object({
   shoppingListId: z.string(),
@@ -18,13 +24,24 @@ export const listShoppingListInviteesHandler: Handler = async (req, res) => {
 
   if (
     !req.userId ||
-    !(await canAccessList(req.userId, params.shoppingListId))
+    !(await isOwnerOfList(req.userId, params.shoppingListId))
   ) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
     return;
   }
 
-  res.json([]);
+  (await getShoppingListDetailedInvitees(params.shoppingListId))
+    .mapErr((err) => {
+      switch (err) {
+        case "notFound":
+          return res.sendStatus(StatusCodes.NOT_FOUND);
+        case "unknown":
+          return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    })
+    .map((invitees) => {
+      return res.json(invitees);
+    });
 };
 
 const inviteUserToShoppingListParamsSchema = z.object({
@@ -54,10 +71,47 @@ export const inviteUserToShoppingListHandler: Handler = async (req, res) => {
     return;
   }
 
-  res.status(StatusCodes.CREATED).json({
-    id: "",
-    email: body.email,
-  });
+  (await getShoppingList(params.shoppingListId))
+    .mapErr((err) => {
+      switch (err) {
+        case "notFound":
+          return res.status(StatusCodes.NOT_FOUND).json("shoppingListNotFound");
+        case "unknown":
+          return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    })
+    .map(async (shoppingList) => {
+      (await findUserByEmail(body.email))
+        .mapErr((err) => {
+          switch (err) {
+            case "notFound":
+              return res.status(StatusCodes.NOT_FOUND).json("userNotFound");
+            case "unknown":
+              return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+          }
+        })
+        .map(async (user) => {
+          if (shoppingList.owner.id === user.id)
+            return res
+              .status(StatusCodes.BAD_REQUEST)
+              .json("cannotInviteOwner");
+
+          (await addInviteeToShoppingList(params.shoppingListId, user.id))
+            .mapErr((err) => {
+              switch (err) {
+                case "notFound":
+                  return res
+                    .status(StatusCodes.NOT_FOUND)
+                    .json("shoppingListNotFound");
+                case "unknown":
+                  return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+              }
+            })
+            .map(() => {
+              return res.status(StatusCodes.CREATED).json(user);
+            });
+        });
+    });
 };
 
 const removeInviteeFromShoppingListParamsSchema = z.object({
@@ -83,5 +137,16 @@ export const removeInviteeFromShoppingListHandler: Handler = async (
     return;
   }
 
-  res.sendStatus(StatusCodes.OK);
+  (await removeInviteeToShoppingList(params.shoppingListId, params.userId))
+    .mapErr((err) => {
+      switch (err) {
+        case "notFound":
+          return res.status(StatusCodes.NOT_FOUND).json("shoppingListNotFound");
+        case "unknown":
+          return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    })
+    .map(() => {
+      return res.sendStatus(StatusCodes.OK);
+    });
 };

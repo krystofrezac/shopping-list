@@ -53,11 +53,11 @@ const main = async () => {
     listShoppingListInviteesHandler,
   );
   app.post(
-    "/shopping-lists/:shoppingListId/invite",
+    "/shopping-lists/:shoppingListId/invitee",
     inviteUserToShoppingListHandler,
   );
   app.delete(
-    "/shopping-lists/:shoppingListId/invite/:userId",
+    "/shopping-lists/:shoppingListId/invitees/:userId",
     removeInviteeFromShoppingListHandler,
   );
 

@@ -6,7 +6,7 @@ export const isOwnerOfList = async (
   listId: string,
 ): Promise<boolean> =>
   (await getShoppingList(listId))
-    .map((shoppingList) => shoppingList.ownerId === userId)
+    .map((shoppingList) => shoppingList.owner.id === userId)
     // If doesn't exist return true, so that the handler can return 404
     .orElse((err) => (err === "notFound" ? Ok(true) : Err(err)))
     .unwrapOr(false);

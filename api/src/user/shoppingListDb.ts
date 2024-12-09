@@ -1,14 +1,14 @@
 import { Err, Ok, Result } from "@thames/monads";
 import mongoose, { Error, ObjectId, Schema } from "mongoose";
+import { User, UserDb, userToDomain } from "./userDb";
 
 export type ShoppingList = {
   id: string;
   name: string;
-  ownerId: string;
+  owner: User;
 };
 
 export type ShoppingListDetail = ShoppingList & {
-  inviteeIds: string[];
   items: {
     name: string;
     completed: boolean;
@@ -17,10 +17,10 @@ export type ShoppingListDetail = ShoppingList & {
 };
 
 type ShoppingListDb = {
-  id: ObjectId;
+  _id: ObjectId;
   name: string;
-  ownerId: ObjectId;
-  inviteeIds: string[];
+  owner: UserDb;
+  invitees: UserDb[];
   items: {
     name: string;
     completed: boolean;
@@ -28,43 +28,45 @@ type ShoppingListDb = {
   }[];
 };
 
-const shoppingListSchema = new Schema<ShoppingListDb>({
-  name: { type: String, required: true },
-  ownerId: { type: Schema.Types.ObjectId, required: true, ref: "user" },
-  inviteeIds: [{ type: Schema.Types.ObjectId, ref: "user" }],
-  items: [
-    {
-      type: {
-        name: { type: String, required: true },
-        completed: { type: Boolean, required: true },
-        archived: { type: Boolean, required: true },
+const shoppingListSchema = new Schema<ShoppingListDb>(
+  {
+    name: { type: String, required: true },
+    owner: { type: Schema.Types.ObjectId, required: true, ref: "user" },
+    invitees: [{ type: Schema.Types.ObjectId, unique: true, ref: "user" }],
+    items: [
+      {
+        type: {
+          name: { type: String, required: true },
+          completed: { type: Boolean, required: true },
+          archived: { type: Boolean, required: true },
+        },
+        required: true,
       },
-      required: true,
-    },
-  ],
-});
+    ],
+  },
+  { selectPopulatedPaths: true },
+);
 
 const ShoppingListModel = mongoose.model("shopping-list", shoppingListSchema);
 
 const shoppingListToDomain = (shoppingList: ShoppingListDb): ShoppingList => ({
-  id: shoppingList.id.toString(),
+  id: shoppingList._id.toString(),
   name: shoppingList.name,
-  ownerId: shoppingList.ownerId.toString(),
+  owner: userToDomain(shoppingList.owner),
 });
 
 const shoppingListDetailToDomain = (
   shoppingList: ShoppingListDb,
 ): ShoppingListDetail => ({
-  id: shoppingList.id.toString(),
+  id: shoppingList._id.toString(),
   name: shoppingList.name,
-  ownerId: shoppingList.ownerId.toString(),
-  inviteeIds: shoppingList.inviteeIds.map((id) => id.toString()),
+  owner: userToDomain(shoppingList.owner),
   items: shoppingList.items,
 });
 
 export type CreateShoppingListError = "unknown";
 export const createShoppingList = (
-  shoppingList: Omit<ShoppingList, "id">,
+  shoppingList: Omit<ShoppingList, "id" | "owner"> & { owner: string },
 ): Promise<Result<ShoppingList, CreateShoppingListError>> =>
   new ShoppingListModel(shoppingList)
     .save()
@@ -75,10 +77,13 @@ export const createShoppingList = (
     });
 
 export type ListShoppingListsByOwnerError = "unknown";
-export const listShoppingListsByOwner = (
-  ownerId: string,
+export const listShoppingListsForUser = (
+  userId: string,
 ): Promise<Result<ShoppingList[], ListShoppingListsByOwnerError>> =>
-  ShoppingListModel.find({ ownerId }, { id: true, name: true, ownerId: true })
+  ShoppingListModel.find(
+    { $or: [{ owner: userId }, { invitees: userId }] },
+    { _id: true, name: true, owner: true },
+  )
     .then((shoppingLists) => Ok(shoppingLists.map(shoppingListToDomain)))
     .catch((err) => {
       console.error(err);
@@ -92,7 +97,8 @@ export const getShoppingList = async (
   try {
     const shoppingList = await ShoppingListModel.findOne(
       { _id: id },
-      { id: true, name: true, ownerId: true },
+      { id: true, name: true, owner: true },
+      { populate: "owner" },
     );
     if (!shoppingList) return Err("notFound");
     return Ok(shoppingListToDomain(shoppingList));
@@ -110,29 +116,13 @@ export const getShoppingListDetail = async (
   id: string,
 ): Promise<Result<ShoppingListDetail, GetShoppingListDetailError>> => {
   try {
-    const shoppingList = await ShoppingListModel.findOne({ _id: id });
-    if (!shoppingList) return Err("notFound");
-    return Ok(shoppingListDetailToDomain(shoppingList));
-  } catch (err) {
-    console.error(err);
-    if (err instanceof Error.CastError && err.path === "_id") {
-      return Err("notFound");
-    }
-    return Err("unknown");
-  }
-};
-
-export type GetShoppingListInviteesError = "notFound" | "unknown";
-export const getShoppingListInvitees = async (
-  id: string,
-): Promise<Result<string[], GetShoppingListInviteesError>> => {
-  try {
     const shoppingList = await ShoppingListModel.findOne(
       { _id: id },
-      { inviteeIds: true },
+      { id: true, items: true, name: true, owner: true },
+      { populate: "owner" },
     );
     if (!shoppingList) return Err("notFound");
-    return Ok(shoppingList.inviteeIds.map((id) => id.toString()));
+    return Ok(shoppingListDetailToDomain(shoppingList));
   } catch (err) {
     console.error(err);
     if (err instanceof Error.CastError && err.path === "_id") {
@@ -155,6 +145,93 @@ export const deleteShoppingList = async (
     if (err instanceof Error.CastError && err.path === "_id") {
       return Err("notFound");
     }
+    return Err("unknown");
+  }
+};
+
+export type GetShoppingListInviteesError = "notFound" | "unknown";
+export const getShoppingListInvitees = async (
+  id: string,
+): Promise<Result<string[], GetShoppingListInviteesError>> => {
+  try {
+    const shoppingList = await ShoppingListModel.findOne(
+      { _id: id },
+      { invitees: true },
+      { populate: "invitees" },
+    );
+    if (!shoppingList) return Err("notFound");
+    return Ok(shoppingList.invitees.map((id) => id.toString()));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof Error.CastError && err.path === "_id") {
+      return Err("notFound");
+    }
+    return Err("unknown");
+  }
+};
+
+export type GetShoppingListDetailedInviteesError = "notFound" | "unknown";
+export const getShoppingListDetailedInvitees = async (
+  id: string,
+): Promise<Result<User[], GetShoppingListDetailedInviteesError>> => {
+  try {
+    const shoppingList = await ShoppingListModel.findOne(
+      { _id: id },
+      { owner: true, invitees: true },
+    ).populate("invitees");
+    if (!shoppingList) return Err("notFound");
+    return Ok(shoppingList.invitees.map(userToDomain));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof Error.CastError && err.path === "_id") {
+      return Err("notFound");
+    }
+    return Err("unknown");
+  }
+};
+
+export type AddInviteeToShoppingListError = "notFound" | "unknown";
+export const addInviteeToShoppingList = async (
+  shoppingListId: string,
+  userId: string,
+): Promise<Result<null, AddInviteeToShoppingListError>> => {
+  try {
+    const res = await ShoppingListModel.updateOne(
+      { _id: shoppingListId },
+      {
+        $addToSet: {
+          invitees: userId,
+        },
+      },
+    );
+    if (res.matchedCount === 0) return Err("notFound");
+
+    return Ok(null);
+  } catch (err) {
+    console.error(err);
+    return Err("unknown");
+  }
+};
+
+export type RemoveInviteeToShoppingListError = "notFound" | "unknown";
+export const removeInviteeToShoppingList = async (
+  shoppingListId: string,
+  userId: string,
+): Promise<Result<null, RemoveInviteeToShoppingListError>> => {
+  try {
+    const res = await ShoppingListModel.updateOne(
+      { _id: shoppingListId },
+      {
+        $pull: {
+          invitees: userId,
+        },
+      },
+    );
+    if (res.matchedCount === 0) return Err("notFound");
+
+    return Ok(null);
+  } catch (err) {
+    console.error(err);
     return Err("unknown");
   }
 };

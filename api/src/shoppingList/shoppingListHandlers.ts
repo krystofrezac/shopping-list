@@ -7,7 +7,7 @@ import {
   createShoppingList,
   deleteShoppingList,
   getShoppingListDetail,
-  listShoppingListsByOwner,
+  listShoppingListsForUser,
 } from "../user/shoppingListDb";
 import { isOwnerOfList } from "../helpers/isOwnerOfList";
 
@@ -25,7 +25,7 @@ export const createShoppingListHandler: Handler = async (req, res) => {
     return;
   }
 
-  (await createShoppingList({ ...body, ownerId: req.userId }))
+  (await createShoppingList({ ...body, owner: req.userId }))
     .mapErr((err) => {
       switch (err) {
         case "unknown":
@@ -44,8 +44,7 @@ export const listShoppingListsHandler: Handler = async (req, res) => {
     return;
   }
 
-  // TODO: invitees
-  (await listShoppingListsByOwner(req.userId))
+  (await listShoppingListsForUser(req.userId))
     .mapErr((err) => {
       switch (err) {
         case "unknown":

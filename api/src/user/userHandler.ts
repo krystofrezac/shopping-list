@@ -42,7 +42,7 @@ export const loginUserHandler = handler(async (req, res) => {
     return sendInputValidationError(res, "body", bodyValidation.error);
   const body = bodyValidation.data;
 
-  (await findUserByEmail(body.email))
+  (await findUserByEmail(body.email, true))
     .mapErr((err) => {
       switch (err) {
         case "notFound":
@@ -56,7 +56,7 @@ export const loginUserHandler = handler(async (req, res) => {
     .map(async (foundUser) => {
       const isCorrectPassword = await compare(
         body.password,
-        foundUser.hashedPassword,
+        foundUser.hashedPassword!,
       );
       if (!isCorrectPassword)
         return res
