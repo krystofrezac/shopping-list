@@ -50,7 +50,7 @@ export const ShoppingListsPage = () => {
               Create new shopping list
             </Button>
           </div>
-          <CheckBoxFormControl label="Show completed">
+          <CheckBoxFormControl label="Show archived">
             <CheckBox
               checked={showArchived}
               onChange={() => setShowArchived((prev) => !prev)}

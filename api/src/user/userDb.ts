@@ -53,7 +53,7 @@ export const findUserByEmail = async (
 
     return Ok(userToDomain(res));
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return Err("unknown");
   }
 };

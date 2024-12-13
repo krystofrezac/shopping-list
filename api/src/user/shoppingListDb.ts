@@ -92,10 +92,16 @@ export const listShoppingListsForUser = (
   userId: string,
   limit: number,
   page: number,
+  inludeArchived: boolean
 ): Promise<Result<ShoppingList[], ListShoppingListsByOwnerError>> =>
   ShoppingListModel.find(
-    { $or: [{ owner: userId }, { invitees: userId }] },
-    { _id: true, name: true, owner: true },
+    {
+      $and: [
+        { $or: [{ owner: userId }, { invitees: userId }] },
+        ...(!inludeArchived ? [{ archived: false }] : [])
+      ]
+    },
+    { _id: true, name: true, owner: true, archived: true },
     { skip: page * limit, limit },
   )
     .then((shoppingLists) => Ok(shoppingLists.map(shoppingListToDomain)))
@@ -111,7 +117,7 @@ export const getShoppingList = async (
   try {
     const shoppingList = await ShoppingListModel.findOne(
       { _id: id },
-      { id: true, name: true, owner: true },
+      { id: true, name: true, owner: true, archived: true },
       { populate: "owner" },
     );
     if (!shoppingList) return Err("notFound");
@@ -147,14 +153,19 @@ export const getShoppingListItems = async (
   }
 };
 
-export type DeleteShoppingListEror = "notFound" | "unknown";
-export const deleteShoppingList = async (
-  id: string,
-): Promise<Result<null, DeleteShoppingListEror>> => {
+export type UpdateShoppingListEror = "notFound" | "unknown";
+export const updateShoppingList = async (
+  shoppingList: Pick<ShoppingList, "id"> & Partial<Pick<ShoppingList, "archived" | "name">>
+): Promise<Result<ShoppingList, UpdateShoppingListEror>> => {
   try {
-    const res = await ShoppingListModel.deleteOne({ _id: id });
-    if (res.deletedCount === 0) return Err("notFound");
-    return Ok(null);
+    const updated = await ShoppingListModel.findOneAndUpdate({ _id: shoppingList.id, }, { name: shoppingList.name, archived: shoppingList.archived },
+      { projection: { id: true, name: true, owner: true, archived: true } },
+    );
+    if (!updated) return Err("notFound");
+
+    if (shoppingList.archived) updated.archived = shoppingList.archived
+    if (shoppingList.name) updated.name = shoppingList.name
+    return Ok(shoppingListToDomain(updated));
   } catch (err) {
     console.error(err);
     if (err instanceof Error.CastError && err.path === "_id") {

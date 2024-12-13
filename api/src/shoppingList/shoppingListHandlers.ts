@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { canAccessList } from "../helpers/canAccessList";
 import {
   createShoppingList,
-  deleteShoppingList,
+  updateShoppingList,
   getShoppingList,
   listShoppingListsForUser,
 } from "../user/shoppingListDb";
@@ -40,6 +40,7 @@ export const createShoppingListHandler: Handler = async (req, res) => {
 export const listShoppingListsQuerySchema = z.object({
   limit: z.coerce.number().int().default(10),
   page: z.coerce.number().int().default(0),
+  includeArchived: z.string().toLowerCase().transform((x) => x === 'true').pipe(z.boolean())
 });
 export const listShoppingListsHandler: Handler = async (req, res) => {
   const queryValidation = listShoppingListsQuerySchema.safeParse(req.query);
@@ -52,7 +53,7 @@ export const listShoppingListsHandler: Handler = async (req, res) => {
     return;
   }
 
-  (await listShoppingListsForUser(req.userId, query.limit + 1, query.page))
+  (await listShoppingListsForUser(req.userId, query.limit + 1, query.page, query.includeArchived))
     .mapErr((err) => {
       switch (err) {
         case "unknown":
@@ -96,21 +97,30 @@ export const getShoppingListHandler: Handler = async (req, res) => {
     .map((shoppingList) => res.json(shoppingList));
 };
 
-const deleteShoppingListParamsSchema = z.object({
+const updateShoppingListParamsSchema = z.object({
   id: z.string(),
 });
-export const deleteShoppingListHandler: Handler = async (req, res) => {
-  const paramsValidation = deleteShoppingListParamsSchema.safeParse(req.params);
+const updateShoppingListBodySchema = z.object({
+  name: z.string().optional(),
+  archived: z.boolean().optional()
+})
+export const updateShoppingListHandler: Handler = async (req, res) => {
+  const paramsValidation = updateShoppingListParamsSchema.safeParse(req.params);
   if (!paramsValidation.success)
     return sendInputValidationError(res, "params", paramsValidation.error);
   const params = paramsValidation.data;
+
+  const bodyValidation = updateShoppingListBodySchema.safeParse(req.body);
+  if (!bodyValidation.success)
+    return sendInputValidationError(res, "body", bodyValidation.error);
+  const body = bodyValidation.data;
 
   if (!req.userId || !(await isOwnerOfList(req.userId, params.id))) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
     return;
   }
 
-  (await deleteShoppingList(params.id))
+  (await updateShoppingList({ id: params.id, ...body }))
     .mapErr((err) => {
       switch (err) {
         case "notFound":
@@ -119,5 +129,5 @@ export const deleteShoppingListHandler: Handler = async (req, res) => {
           return res.sendStatus(500);
       }
     })
-    .map(() => res.sendStatus(StatusCodes.OK));
+    .map((updated) => res.json(updated));
 };

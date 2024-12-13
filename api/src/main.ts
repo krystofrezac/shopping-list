@@ -2,9 +2,9 @@ import express from "express";
 import { loginUserHandler, registerUserHandler } from "./user/userHandler";
 import {
   createShoppingListHandler,
-  deleteShoppingListHandler,
-  getShoppingListHandler,
+    getShoppingListHandler,
   listShoppingListsHandler,
+  updateShoppingListHandler,
 } from "./shoppingList/shoppingListHandlers";
 import {
   createShoppingListItemHandler,
@@ -34,7 +34,7 @@ const main = async () => {
   app.post("/shopping-list", createShoppingListHandler);
   app.get("/shopping-lists", listShoppingListsHandler);
   app.get("/shopping-lists/:id", getShoppingListHandler);
-  app.delete("/shopping-lists/:id", deleteShoppingListHandler);
+  app.patch("/shopping-lists/:id", updateShoppingListHandler);
 
   app.get(
     "/shopping-lists/:shoppingListId/items",
