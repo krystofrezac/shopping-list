@@ -18,7 +18,7 @@ export const useRegisterMutation = (options?: UseRegisterMutationParams) => {
     mutationFn: ({ email, password }) => {
       if (env.VITE_API_MOCK_ENABLED) {
         return new Promise((resolve) => {
-          setTimeout(() => resolve(undefined), 1000);
+          setTimeout(() => resolve(undefined), 100);
         });
       }
 

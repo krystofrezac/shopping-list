@@ -22,7 +22,7 @@ export const useLoginMutation = (options?: UseLoginMutationParams) => {
     mutationFn: ({ email, password }) => {
       if (env.VITE_API_MOCK_ENABLED) {
         return new Promise((resolve) => {
-          setTimeout(() => resolve({ accessToken: "", userId: "1" }), 1000);
+          setTimeout(() => resolve({ accessToken: "", userId: "1" }), 100);
         });
       }
 
