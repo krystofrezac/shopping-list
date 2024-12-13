@@ -1,8 +1,9 @@
 import express from "express";
+import cors from "cors";
 import { loginUserHandler, registerUserHandler } from "./user/userHandler";
 import {
   createShoppingListHandler,
-    getShoppingListHandler,
+  getShoppingListHandler,
   listShoppingListsHandler,
   updateShoppingListHandler,
 } from "./shoppingList/shoppingListHandlers";
@@ -27,6 +28,7 @@ const main = async () => {
   const app = express();
   app.use(express.json());
   app.use(parseAuthorization);
+  app.use(cors({ origin: "*" }));
 
   app.post("/user/register", registerUserHandler);
   app.post("/user/login", loginUserHandler);

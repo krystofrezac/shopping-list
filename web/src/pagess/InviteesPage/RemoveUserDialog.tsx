@@ -1,8 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ShoppingList } from "../../api/types";
+import { User } from "../../api/types";
 import { useRemoveUserMutation } from "../../api/useRemoveUserMutation";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { getShoppingListQueryKey } from "../../api/useShoppingListQuery";
+import { getShoppingListInviteesQueryKey } from "../../api/useShoppingListInviteesQuery";
 
 export type RemoveUserDialog = {
   shoppingListId: string;
@@ -28,17 +28,12 @@ export const RemoveUserDialog = ({
       },
       {
         onSuccess: () => {
-          queryClient.setQueryData<ShoppingList>(
-            getShoppingListQueryKey(shoppingListId),
+          queryClient.setQueryData<User[]>(
+            getShoppingListInviteesQueryKey(shoppingListId),
             (data) => {
               if (!data) return data;
 
-              return {
-                ...data,
-                invitees: data.invitees.filter(
-                  (invitee) => invitee.id !== userId,
-                ),
-              };
+              return data.filter((invitee) => invitee.id !== userId);
             },
           );
           onClose();

@@ -1,6 +1,5 @@
 import { useShoppingListQuery } from "../../api/useShoppingListQuery";
 import { DynamicContent, RenderContent } from "../../components/DynamicContent";
-import { ShoppingList } from "../../api/types";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { useState } from "react";
@@ -16,42 +15,53 @@ import { useUserContext } from "../../contexts/UserContext";
 import { Link, useParams } from "react-router-dom";
 import { ShoppingListHeader } from "../../components/ShoppingListHeader";
 import { ItemCreateDialog } from "./ItemCreateDialog";
+import { useShoppingListItemsQuery } from "../../api/useShoppingListItemsQuery";
+import {
+  JoinedQueriesRenderContentData,
+  joinQueries,
+} from "../../api/joinQueries";
 
 export const ShoppingListPage = () => {
   const params = useParams<{ id: string }>();
   const userContext = useUserContext();
 
-  const query = useShoppingListQuery({ id: params.id! });
-
   const [showCompleted, setShowCompleted] = useState(false);
-  const [editingItemIndex, setEditingItemIndex] = useState<number | undefined>(
+  const [editingItemId, setEditingItemId] = useState<string | undefined>(
     undefined,
   );
-  const [deletingItemIndex, setDeletingItemIndex] = useState<
-    number | undefined
-  >(undefined);
+  const [deletingItemId, setDeletingItemId] = useState<string | undefined>(
+    undefined,
+  );
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [isCreateItemDialogOpen, setIsCreateItemDialogOpen] = useState(false);
 
-  const renderContent: RenderContent<ShoppingList> = (shoppingList) => {
-    const isUserOwner = userContext.currentUserId === shoppingList.owner.id;
-    const items = shoppingList.items.filter(
-      (item) => showCompleted || !item.completed,
-    );
+  const shoppingListQuery = useShoppingListQuery({ id: params.id! });
+  const itemsQuery = useShoppingListItemsQuery({
+    id: params.id!,
+    includeCompleted: showCompleted,
+  });
+  const joinedQueries = joinQueries({
+    shoppingList: shoppingListQuery,
+    items: itemsQuery,
+  });
+
+  const renderContent: RenderContent<
+    JoinedQueriesRenderContentData<typeof joinedQueries>
+  > = ({ shoppingList, items }) => {
+    const isUserOwner = userContext.user?.id === shoppingList.owner.id;
 
     const mappedItems = items
-      .map((item, index) => {
+      .map((item) => {
         if (item.archived) return null;
         if (!showCompleted && item.completed) return null;
 
         return (
           <ShoppingListItem
-            key={index}
-            index={index}
+            key={item.id}
             item={item}
             shoppingListId={shoppingList.id}
-            onEdit={() => setEditingItemIndex(index)}
-            onDelete={() => setDeletingItemIndex(index)}
+            onEdit={() => setEditingItemId(item.id)}
+            onDelete={() => setDeletingItemId(item.id)}
           />
         );
       })
@@ -60,16 +70,14 @@ export const ShoppingListPage = () => {
     return (
       <>
         <ItemEditDialog
-          index={editingItemIndex ?? -1}
           shoppingListId={shoppingList.id}
-          item={shoppingList.items[editingItemIndex ?? -1]}
-          onClose={() => setEditingItemIndex(undefined)}
+          item={items.find((item) => item.id === editingItemId)}
+          onClose={() => setEditingItemId(undefined)}
         />
         <ItemDeleteDialog
-          index={deletingItemIndex}
           shoppingList={shoppingList}
-          item={shoppingList.items[deletingItemIndex ?? -1]}
-          onClose={() => setDeletingItemIndex(undefined)}
+          item={items.find((item) => item.id === deletingItemId)}
+          onClose={() => setDeletingItemId(undefined)}
         />
         <ListRenameDialog
           shoppingList={isRenameDialogOpen ? shoppingList : undefined}
@@ -156,7 +164,7 @@ export const ShoppingListPage = () => {
 
   return (
     <>
-      <DynamicContent {...query} renderContent={renderContent} />
+      <DynamicContent {...joinedQueries} renderContent={renderContent} />
     </>
   );
 };

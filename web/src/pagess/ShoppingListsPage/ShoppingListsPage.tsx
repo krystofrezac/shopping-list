@@ -16,13 +16,15 @@ export const ShoppingListsPage = () => {
   );
   const [showArchived, setShowArchived] = useState(false);
 
-  const shoppingListsQuery = useShoppingListsQuery();
+  const shoppingListsQuery = useShoppingListsQuery({
+    includeArchived: showArchived,
+  });
 
   const renderContent: RenderContent<ShoppingListOverview[]> = (
     shoppingLists,
   ) => {
     const mappedLists = shoppingLists
-      .filter((shoppingList) => !shoppingList.archived || showArchived)
+      .filter((shoppingList) => !shoppingList.archived || showArchived) // Because of local cache, this is the easiest solution
       .map((shoppingList) => (
         <ShoppingList
           key={shoppingList.id}
@@ -69,6 +71,10 @@ export const ShoppingListsPage = () => {
     );
   };
   return (
-    <DynamicContent {...shoppingListsQuery} renderContent={renderContent} />
+    <DynamicContent
+      {...shoppingListsQuery}
+      data={shoppingListsQuery.data?.shoppingLists}
+      renderContent={renderContent}
+    />
   );
 };

@@ -1,10 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ShoppingList, ShoppingListItem } from "../../api/types";
-import { getShoppingListQueryKey } from "../../api/useShoppingListQuery";
+import { ShoppingListItem } from "../../api/types";
+import { getShoppingListItemsQueryKey } from "../../api/useShoppingListItemsQuery";
 
 export type GetUpadteItemQueryCache = {
   shoppingListId: string;
-  itemIndex: number;
   newData: ShoppingListItem;
 };
 
@@ -13,17 +12,20 @@ export const useGetUpdateItemQueryCache = () => {
 
   const updateItemQueryCache = ({
     shoppingListId,
-    itemIndex,
     newData,
   }: GetUpadteItemQueryCache) => {
-    queryClient.setQueryData<ShoppingList>(
-      getShoppingListQueryKey(shoppingListId),
-      (data) => {
-        if (!data) return data;
+    queryClient.setQueriesData<ShoppingListItem[]>(
+      {
+        exact: false,
+        queryKey: getShoppingListItemsQueryKey(shoppingListId),
+      },
+      (items) => {
+        if (!items) return items;
 
-        const newItems = [...data.items];
-        newItems[itemIndex] = newData;
-        return { ...data, items: newItems };
+        return items.map((item) => {
+          if (item.id === newData.id) return newData;
+          return item;
+        });
       },
     );
   };

@@ -40,7 +40,11 @@ export const createShoppingListHandler: Handler = async (req, res) => {
 export const listShoppingListsQuerySchema = z.object({
   limit: z.coerce.number().int().default(10),
   page: z.coerce.number().int().default(0),
-  includeArchived: z.string().toLowerCase().transform((x) => x === 'true').pipe(z.boolean())
+  includeArchived: z
+    .string()
+    .toLowerCase()
+    .transform((x) => x === "true")
+    .pipe(z.boolean()),
 });
 export const listShoppingListsHandler: Handler = async (req, res) => {
   const queryValidation = listShoppingListsQuerySchema.safeParse(req.query);
@@ -53,7 +57,14 @@ export const listShoppingListsHandler: Handler = async (req, res) => {
     return;
   }
 
-  (await listShoppingListsForUser(req.userId, query.limit + 1, query.page, query.includeArchived))
+  (
+    await listShoppingListsForUser(
+      req.userId,
+      query.limit + 1,
+      query.page,
+      query.includeArchived,
+    )
+  )
     .mapErr((err) => {
       switch (err) {
         case "unknown":
@@ -102,8 +113,8 @@ const updateShoppingListParamsSchema = z.object({
 });
 const updateShoppingListBodySchema = z.object({
   name: z.string().optional(),
-  archived: z.boolean().optional()
-})
+  archived: z.boolean().optional(),
+});
 export const updateShoppingListHandler: Handler = async (req, res) => {
   const paramsValidation = updateShoppingListParamsSchema.safeParse(req.params);
   if (!paramsValidation.success)

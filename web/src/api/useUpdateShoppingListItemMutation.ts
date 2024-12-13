@@ -1,10 +1,11 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { ShoppingListItem } from "./types";
+import { useFetchFn } from "./useFetchFn";
+import { env } from "../env";
 
 export type UpdateShoppingListItemVariables = {
   shoppingListId: string;
-  shoppingListItemIndex: number;
-  data: ShoppingListItem;
+  item: ShoppingListItem;
 };
 export type UseUpdateShoppingListItemMutationParams = Omit<
   UseMutationOptions<
@@ -17,18 +18,24 @@ export type UseUpdateShoppingListItemMutationParams = Omit<
 
 export const useUpdateShoppingListItemMutation = (
   options?: UseUpdateShoppingListItemMutationParams,
-) =>
-  useMutation({
-    ...options,
-    mutationFn: ({ shoppingListId, shoppingListItemIndex, data }) => {
-      console.log(`Calling api to update shopping list item`, {
-        shoppingListId,
-        shoppingListItemIndex,
-        data,
-      });
+) => {
+  const fetchFn = useFetchFn();
 
-      return new Promise((resolve) => {
-        setTimeout(() => resolve(data), 1000);
-      });
+  return useMutation({
+    ...options,
+    mutationFn: ({ shoppingListId, item }) => {
+      if (env.VITE_API_MOCK_ENABLED)
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(item), 1000);
+        });
+
+      return fetchFn(
+        "PUT",
+        `/shopping-lists/${shoppingListId}/items/${item.id}`,
+        {
+          body: item,
+        },
+      ).then((res) => res.json());
     },
   });
+};

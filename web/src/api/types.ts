@@ -3,6 +3,7 @@ export type User = {
   email: string;
 };
 export type ShoppingListItem = {
+  id: string;
   name: string;
   completed: boolean;
   archived: boolean;
@@ -13,8 +14,6 @@ export type ShoppingList = {
   name: string;
   owner: User;
   archived: boolean;
-  invitees: User[];
-  items: ShoppingListItem[];
 };
 
 export type ShoppingListOverview = Pick<

@@ -7,7 +7,7 @@ import {
 } from "../../components/Dialog";
 import { TextInput } from "../../components/TextInput";
 import { ShoppingList } from "../../api/types";
-import { useRenameShoppingListMutation } from "../../api/useRenameShoppingListMutation";
+import { useUpdateShoppingListMutation } from "../../api/useRenameShoppingListMutation";
 import { Button } from "../../components/Button";
 import { useQueryClient } from "@tanstack/react-query";
 import { getShoppingListQueryKey } from "../../api/useShoppingListQuery";
@@ -40,7 +40,7 @@ const ListRenameDialogContent = ({
   onClose,
 }: ListRenameDialogContentProps) => {
   const queryClient = useQueryClient();
-  const { mutate, isPending } = useRenameShoppingListMutation();
+  const { mutate, isPending } = useUpdateShoppingListMutation();
 
   const [name, setName] = useState(shoppingList.name);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -62,8 +62,11 @@ const ListRenameDialogContent = ({
       },
       {
         onSuccess: () => {
-          queryClient.setQueryData<ShoppingList>(
-            getShoppingListQueryKey(shoppingList.id),
+          queryClient.setQueriesData<ShoppingList>(
+            {
+              exact: false,
+              queryKey: getShoppingListQueryKey(shoppingList.id),
+            },
             (data) => {
               if (!data) return;
 

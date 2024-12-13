@@ -8,10 +8,10 @@ import {
 } from "../../components/Dialog";
 import { TextInput } from "../../components/TextInput";
 
-import { ShoppingList } from "../../api/types";
+import { ShoppingListItem } from "../../api/types";
 import { useCreateShoppingListItemMutation } from "../../api/useCreateShoppingListItemMutation";
 import { useQueryClient } from "@tanstack/react-query";
-import { getShoppingListQueryKey } from "../../api/useShoppingListQuery";
+import { getShoppingListItemsQueryKey } from "../../api/useShoppingListItemsQuery";
 
 type ItemCreateDialogProps = {
   isOpen: boolean;
@@ -49,15 +49,15 @@ export const ItemCreateDialog = ({
       },
       {
         onSuccess: (newItem) => {
-          queryClient.setQueryData<ShoppingList>(
-            getShoppingListQueryKey(shoppingListId),
-            (data) => {
-              if (!data) return;
+          queryClient.setQueriesData<ShoppingListItem[]>(
+            {
+              exact: false,
+              queryKey: getShoppingListItemsQueryKey(shoppingListId),
+            },
+            (items) => {
+              if (!items) return;
 
-              return {
-                ...data,
-                items: [...data.items, newItem],
-              };
+              return [...items, newItem];
             },
           );
           onClose();

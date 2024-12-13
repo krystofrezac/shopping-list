@@ -24,12 +24,14 @@ export const DynamicContent = <TData,>({
       </div>
     );
 
-  if (error || data === undefined)
+  if (error || data === undefined) {
+    console.error({ error, data });
     return (
       <div className="flex justify-center text-xl">
         Unexpected error occured
       </div>
     );
+  }
 
   return renderContent(data);
 };

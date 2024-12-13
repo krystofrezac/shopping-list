@@ -9,14 +9,12 @@ import { useGetUpdateItemQueryCache } from "./useGetUpdateItemQueryCache";
 export type ShoppingListItemProps = {
   shoppingListId: string;
   item: ShoppingListeItemType;
-  index: number;
   onEdit: () => void;
   onDelete: () => void;
 };
 
 export const ShoppingListItem = ({
   shoppingListId,
-  index,
   item,
   onEdit,
   onDelete,
@@ -32,14 +30,12 @@ export const ShoppingListItem = ({
     updateShoppingListItem(
       {
         shoppingListId: shoppingListId,
-        shoppingListItemIndex: index,
-        data: { ...item, completed: !item.completed },
+        item: { ...item, completed: !item.completed },
       },
       {
         onSuccess: (newShoppingListItem) =>
           updateItemQueryCache({
             shoppingListId: shoppingListId,
-            itemIndex: index,
             newData: newShoppingListItem,
           }),
       },
@@ -47,7 +43,7 @@ export const ShoppingListItem = ({
   };
 
   const checkbox =
-    index === updateShoppingListItemVariables?.shoppingListItemIndex &&
+    item.id === updateShoppingListItemVariables?.item.id &&
     isUpdateShoppingListItemPending ? (
       <Spinner />
     ) : (
@@ -55,7 +51,7 @@ export const ShoppingListItem = ({
     );
 
   return (
-    <Card key={index}>
+    <Card key={item.id}>
       <CardBody>
         <div className="flex flex-row items-center gap-4">
           <div className="w-6 flex items-center">{checkbox}</div>

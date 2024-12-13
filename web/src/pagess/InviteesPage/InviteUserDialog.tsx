@@ -9,8 +9,8 @@ import {
 import { TextInput } from "../../components/TextInput";
 import { useInviteUserMutation } from "../../api/useInviteUserMutation";
 import { useQueryClient } from "@tanstack/react-query";
-import { ShoppingList } from "../../api/types";
-import { getShoppingListQueryKey } from "../../api/useShoppingListQuery";
+import { User } from "../../api/types";
+import { getShoppingListInviteesQueryKey } from "../../api/useShoppingListInviteesQuery";
 
 export type InviteUserDialogProps = {
   isOpen: boolean;
@@ -45,15 +45,12 @@ export const InviteUserDialog = ({
       },
       {
         onSuccess: (invitee) => {
-          queryClient.setQueryData<ShoppingList>(
-            getShoppingListQueryKey(shoppingListId),
+          queryClient.setQueryData<User[]>(
+            getShoppingListInviteesQueryKey(shoppingListId),
             (data) => {
               if (!data) return;
 
-              return {
-                ...data,
-                invitees: [...data.invitees, invitee],
-              };
+              return [...data, invitee];
             },
           );
           onClose();

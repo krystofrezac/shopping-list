@@ -7,19 +7,19 @@ export const UserPicker = () => {
 
   const menuItems: MenuItem[] = AVAILABLE_USERS.map((user) => {
     const handleClick = () => {
-      userContext.setCurrentUserId(user.id);
+      userContext.changeUser(user.id);
     };
     return {
       id: user.id,
       element: <button onClick={handleClick}>{user.email}</button>,
-      isActive: user.id === userContext.currentUserId,
+      isActive: user.id === userContext.user?.fakeId,
     };
   });
 
   const currentUser = AVAILABLE_USERS.find(
-    (user) => user.id === userContext.currentUserId,
-  )!;
-  const initials = currentUser.email.slice(0, 2).toUpperCase();
+    (user) => user.id === userContext.user?.fakeId,
+  );
+  const initials = currentUser?.email.slice(0, 2).toUpperCase() ?? "??";
 
   return (
     <Dropdown

@@ -1,8 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useArchiveShoppingListMutation } from "../../api/useArchiveShoppingListMutation";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { SHOPPING_LISTS_QUERY_KEY } from "../../api/useShoppingListsQuery";
-import { ShoppingListOverview } from "../../api/types";
+import {
+  SHOPPING_LISTS_QUERY_KEY,
+  ShoppingListsResponse,
+} from "../../api/useShoppingListsQuery";
+import { useUpdateShoppingListMutation } from "../../api/useRenameShoppingListMutation";
 
 export type ListDeleteDialog = {
   shoppingListId?: string;
@@ -14,28 +16,38 @@ export const ListDeleteDialog = ({
   onClose,
 }: ListDeleteDialog) => {
   const queryClient = useQueryClient();
-  const { mutate: archive, isPending: isArchivePending } =
-    useArchiveShoppingListMutation();
+  const { mutate: updateShoppingList, isPending: isArchivePending } =
+    useUpdateShoppingListMutation();
 
   const handleConfirm = () => {
     if (!shoppingListId) return;
 
-    archive(
-      { shoppingListId },
+    updateShoppingList(
+      { shoppingListId, archived: true },
       {
         onSuccess: () => {
-          queryClient.setQueryData<ShoppingListOverview[]>(
-            SHOPPING_LISTS_QUERY_KEY,
+          queryClient.setQueriesData<ShoppingListsResponse>(
+            {
+              exact: false,
+              queryKey: SHOPPING_LISTS_QUERY_KEY,
+            },
             (prev) => {
               if (!prev) return;
 
-              return prev.map((shoppingList) => {
-                if (shoppingList.id === shoppingListId) {
-                  return { ...shoppingList, archived: true };
-                }
+              const newShoppingLists = prev.shoppingLists.filter(
+                (shoppingList) => {
+                  if (shoppingList.id === shoppingListId) {
+                    return { ...shoppingList, archived: true };
+                  }
 
-                return shoppingList;
-              });
+                  return shoppingList;
+                },
+              );
+
+              return {
+                ...prev,
+                shoppingLists: newShoppingLists,
+              };
             },
           );
           onClose();

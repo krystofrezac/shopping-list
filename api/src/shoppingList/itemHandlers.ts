@@ -14,7 +14,11 @@ const listShoppingListItemsParamsSchema = z.object({
   shoppingListId: z.string(),
 });
 const listShoppingListItemsQuerySchema = z.object({
-  includeCompleted: z.coerce.boolean().default(false),
+  includeCompleted: z
+    .string()
+    .toLowerCase()
+    .transform((x) => x === "true")
+    .pipe(z.boolean()),
 });
 export const listShoppingListItemsHandler: Handler = async (req, res) => {
   const paramsValidation = listShoppingListItemsParamsSchema.safeParse(

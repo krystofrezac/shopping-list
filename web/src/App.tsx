@@ -34,7 +34,10 @@ const queryclient = new QueryClient({
       refetchOnMount: false,
     },
     mutations: {
-      onError: () => alert("Something went wrong"),
+      onError: (err) => {
+        console.error(err);
+        alert("Something went wrong");
+      },
     },
   },
 });

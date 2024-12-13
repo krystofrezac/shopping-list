@@ -9,7 +9,7 @@ export type UserGuardProps = {
 export const UserGuard = ({ children, userId }: UserGuardProps) => {
   const userContext = useUserContext();
 
-  if (userContext.currentUserId !== userId) return null;
+  if (userContext.user?.id !== userId) return null;
 
   return children;
 };

@@ -9,8 +9,10 @@ import {
 import { TextInput } from "../../components/TextInput";
 import { useCreateShoppingListMutation } from "../../api/useCreateShoppingListMutation";
 import { useQueryClient } from "@tanstack/react-query";
-import { SHOPPING_LISTS_QUERY_KEY } from "../../api/useShoppingListsQuery";
-import { ShoppingListOverview } from "../../api/types";
+import {
+  SHOPPING_LISTS_QUERY_KEY,
+  ShoppingListsResponse,
+} from "../../api/useShoppingListsQuery";
 
 export type ListCreateDialogProps = {
   isOpen: boolean;
@@ -47,12 +49,18 @@ export const ListCreateDialog = ({
       },
       {
         onSuccess: (newShoppingList) => {
-          queryClient.setQueryData<ShoppingListOverview[]>(
-            SHOPPING_LISTS_QUERY_KEY,
+          queryClient.setQueriesData<ShoppingListsResponse>(
+            {
+              exact: false,
+              queryKey: SHOPPING_LISTS_QUERY_KEY,
+            },
             (prev) => {
               if (!prev) return;
 
-              return [...prev, newShoppingList];
+              return {
+                ...prev,
+                shoppingLists: [...prev.shoppingLists, newShoppingList],
+              };
             },
           );
           onClose();

@@ -39,9 +39,7 @@ const shoppingListSchema = new Schema<ShoppingListDb>(
       ref: "user",
       index: true,
     },
-    invitees: [
-      { type: Schema.Types.ObjectId, unique: true, ref: "user", index: true },
-    ],
+    invitees: [{ type: Schema.Types.ObjectId, ref: "user", index: true }],
     archived: { type: Boolean },
     items: [
       {
@@ -92,14 +90,14 @@ export const listShoppingListsForUser = (
   userId: string,
   limit: number,
   page: number,
-  inludeArchived: boolean
+  inludeArchived: boolean,
 ): Promise<Result<ShoppingList[], ListShoppingListsByOwnerError>> =>
   ShoppingListModel.find(
     {
       $and: [
         { $or: [{ owner: userId }, { invitees: userId }] },
-        ...(!inludeArchived ? [{ archived: false }] : [])
-      ]
+        ...(!inludeArchived ? [{ archived: false }] : []),
+      ],
     },
     { _id: true, name: true, owner: true, archived: true },
     { skip: page * limit, limit },
@@ -155,16 +153,19 @@ export const getShoppingListItems = async (
 
 export type UpdateShoppingListEror = "notFound" | "unknown";
 export const updateShoppingList = async (
-  shoppingList: Pick<ShoppingList, "id"> & Partial<Pick<ShoppingList, "archived" | "name">>
+  shoppingList: Pick<ShoppingList, "id"> &
+    Partial<Pick<ShoppingList, "archived" | "name">>,
 ): Promise<Result<ShoppingList, UpdateShoppingListEror>> => {
   try {
-    const updated = await ShoppingListModel.findOneAndUpdate({ _id: shoppingList.id, }, { name: shoppingList.name, archived: shoppingList.archived },
+    const updated = await ShoppingListModel.findOneAndUpdate(
+      { _id: shoppingList.id },
+      { name: shoppingList.name, archived: shoppingList.archived },
       { projection: { id: true, name: true, owner: true, archived: true } },
     );
     if (!updated) return Err("notFound");
 
-    if (shoppingList.archived) updated.archived = shoppingList.archived
-    if (shoppingList.name) updated.name = shoppingList.name
+    if (shoppingList.archived) updated.archived = shoppingList.archived;
+    if (shoppingList.name) updated.name = shoppingList.name;
     return Ok(shoppingListToDomain(updated));
   } catch (err) {
     console.error(err);
@@ -186,7 +187,7 @@ export const getShoppingListInvitees = async (
       { populate: "invitees" },
     );
     if (!shoppingList) return Err("notFound");
-    return Ok(shoppingList.invitees.map((id) => id.toString()));
+    return Ok(shoppingList.invitees.map((invitee) => invitee._id.toString()));
   } catch (err) {
     console.error(err);
     if (err instanceof Error.CastError && err.path === "_id") {

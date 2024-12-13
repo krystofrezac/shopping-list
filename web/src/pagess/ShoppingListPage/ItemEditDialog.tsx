@@ -13,7 +13,6 @@ import { useGetUpdateItemQueryCache } from "./useGetUpdateItemQueryCache";
 
 type ItemEditDialogContentProps = {
   shoppingListId: string;
-  index: number;
   item: ShoppingListItem;
   onClose: () => void;
 };
@@ -36,7 +35,6 @@ export const ItemEditDialog = ({ item, ...rest }: ItemEditDialogProps) => {
 
 const ItemEditDialogContent = ({
   shoppingListId,
-  index,
   item,
   onClose,
 }: ItemEditDialogContentProps) => {
@@ -62,8 +60,7 @@ const ItemEditDialogContent = ({
     mutate(
       {
         shoppingListId,
-        shoppingListItemIndex: index,
-        data: {
+        item: {
           ...item,
           name,
         },
@@ -72,7 +69,6 @@ const ItemEditDialogContent = ({
         onSuccess: (newItem) => {
           updateItemQueryCache({
             shoppingListId,
-            itemIndex: index,
             newData: newItem,
           });
           onClose();

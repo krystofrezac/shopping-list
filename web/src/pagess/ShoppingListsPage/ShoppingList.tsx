@@ -10,27 +10,26 @@ export type ShoppingListProps = {
 };
 
 export const ShoppingList = ({ shoppingList, onDelete }: ShoppingListProps) => {
-  const { currentUserId } = useUserContext();
+  const { user } = useUserContext();
   return (
     <Link to={`/shopping-lists/${shoppingList.id}`}>
       <Card>
         <CardBody>
           <div className="flex flex-row items-center gap-4">
             <p className="text-lg">{shoppingList.name}</p>
-            {currentUserId === shoppingList.owner.id &&
-              !shoppingList.archived && (
-                <div className="flex">
-                  <IconButton
-                    iconName="TrashIcon"
-                    size="sm"
-                    color="error"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onDelete();
-                    }}
-                  />
-                </div>
-              )}
+            {user?.id === shoppingList.owner.id && !shoppingList.archived && (
+              <div className="flex">
+                <IconButton
+                  iconName="TrashIcon"
+                  size="sm"
+                  color="error"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onDelete();
+                  }}
+                />
+              </div>
+            )}
           </div>
         </CardBody>
       </Card>

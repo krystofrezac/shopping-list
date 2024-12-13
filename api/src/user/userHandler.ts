@@ -74,6 +74,7 @@ export const loginUserHandler = handler(async (req, res) => {
       );
 
       return res.json({
+        userId: foundUser.id,
         accessToken: token,
       });
     });

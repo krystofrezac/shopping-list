@@ -2,25 +2,37 @@ import { useParams } from "react-router-dom";
 import { ShoppingListHeader } from "../../components/ShoppingListHeader";
 import { useShoppingListQuery } from "../../api/useShoppingListQuery";
 import { DynamicContent, RenderContent } from "../../components/DynamicContent";
-import { ShoppingList } from "../../api/types";
 import { Card, CardBody } from "../../components/Card";
 import { IconButton } from "../../components/IconButton";
 import { Button } from "../../components/Button";
 import { InviteUserDialog } from "./InviteUserDialog";
 import { useState } from "react";
 import { RemoveUserDialog } from "./RemoveUserDialog";
+import { useShoppingListInviteesQuery } from "../../api/useShoppingListInviteesQuery";
+import {
+  JoinedQueriesRenderContentData,
+  joinQueries,
+} from "../../api/joinQueries";
 
 export const InviteesPage = () => {
   const params = useParams<{ id: string }>();
-  const query = useShoppingListQuery({ id: params.id! });
+
+  const shoppingListQuery = useShoppingListQuery({ id: params.id! });
+  const inviteesQuery = useShoppingListInviteesQuery({ id: params.id! });
+  const joinedQueries = joinQueries({
+    shoppingList: shoppingListQuery,
+    invitees: inviteesQuery,
+  });
 
   const [isInvitingUser, setIsInvitingUser] = useState(false);
   const [userIdToRemove, setUserIdToRemove] = useState<string | undefined>(
     undefined,
   );
 
-  const renderContent: RenderContent<ShoppingList> = (shoppingList) => {
-    const mappedInvitess = shoppingList.invitees.map((invitee) => (
+  const renderContent: RenderContent<
+    JoinedQueriesRenderContentData<typeof joinedQueries>
+  > = ({ shoppingList, invitees }) => {
+    const mappedInvitess = invitees.map((invitee) => (
       <Card key={invitee.id}>
         <CardBody>
           <div className="flex flex-row items-center gap-4">
@@ -67,5 +79,5 @@ export const InviteesPage = () => {
     );
   };
 
-  return <DynamicContent {...query} renderContent={renderContent} />;
+  return <DynamicContent {...joinedQueries} renderContent={renderContent} />;
 };

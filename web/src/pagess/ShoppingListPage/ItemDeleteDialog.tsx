@@ -1,47 +1,46 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { ShoppingList, ShoppingListItem } from "../../api/types";
-import { useUpdateShoppingListItemMutation } from "../../api/useUpdateShoppingListItemMutation";
+import { useDeleteShoppingListItemMutation } from "../../api/useDeleteShoppingListItemMutation";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { useGetUpdateItemQueryCache } from "./useGetUpdateItemQueryCache";
+import { getShoppingListItemsQueryKey } from "../../api/useShoppingListItemsQuery";
 
 export type ItemDeleteDialog = {
   shoppingList: ShoppingList;
-  index?: number;
   item?: ShoppingListItem;
   onClose: () => void;
 };
 
 export const ItemDeleteDialog = ({
   shoppingList,
-  index,
   item,
   onClose,
 }: ItemDeleteDialog) => {
-  const { mutate, isPending } = useUpdateShoppingListItemMutation();
-  const updateItemQueryCache = useGetUpdateItemQueryCache();
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useDeleteShoppingListItemMutation();
 
-  const isOpen = index !== undefined && !!item;
+  const isOpen = !!item;
 
   const handleConfirm = () => {
     if (!isOpen) return;
 
-    const newData: ShoppingListItem = {
-      ...item,
-      archived: true,
-    };
-
     mutate(
       {
         shoppingListId: shoppingList.id,
-        shoppingListItemIndex: index,
-        data: newData,
+        itemId: item.id,
       },
       {
         onSuccess: () => {
-          updateItemQueryCache({
-            shoppingListId: shoppingList.id,
-            itemIndex: index,
-            newData,
-          });
+          queryClient.setQueriesData<ShoppingListItem[]>(
+            {
+              exact: false,
+              queryKey: getShoppingListItemsQueryKey(shoppingList.id),
+            },
+            (items) => {
+              if (!items) return items;
+
+              return items.filter((cacheItem) => cacheItem.id !== item.id);
+            },
+          );
           onClose();
         },
       },
