@@ -37,21 +37,37 @@ export const createShoppingListHandler: Handler = async (req, res) => {
     );
 };
 
-// TODO: paging
+export const listShoppingListsQuerySchema = z.object({
+  limit: z.coerce.number().int().default(10),
+  page: z.coerce.number().int().default(0),
+});
 export const listShoppingListsHandler: Handler = async (req, res) => {
+  const queryValidation = listShoppingListsQuerySchema.safeParse(req.query);
+  if (!queryValidation.success)
+    return sendInputValidationError(res, "query", queryValidation.error);
+  const query = queryValidation.data;
+
   if (!req.userId) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
     return;
   }
 
-  (await listShoppingListsForUser(req.userId))
+  (await listShoppingListsForUser(req.userId, query.limit + 1, query.page))
     .mapErr((err) => {
       switch (err) {
         case "unknown":
           return res.sendStatus(500);
       }
     })
-    .map((shoppingLists) => res.json(shoppingLists));
+    .map((shoppingListsPlusOne) => {
+      const hasNextPage = shoppingListsPlusOne.length > query.limit;
+      const shoppingLists = shoppingListsPlusOne.slice(0, query.limit);
+
+      return res.json({
+        hasNextPage,
+        shoppingLists,
+      });
+    });
 };
 
 const getShoppingListParamsSchema = z.object({

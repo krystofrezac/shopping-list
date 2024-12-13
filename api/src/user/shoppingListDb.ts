@@ -90,10 +90,13 @@ export const createShoppingList = (
 export type ListShoppingListsByOwnerError = "unknown";
 export const listShoppingListsForUser = (
   userId: string,
+  limit: number,
+  page: number,
 ): Promise<Result<ShoppingList[], ListShoppingListsByOwnerError>> =>
   ShoppingListModel.find(
     { $or: [{ owner: userId }, { invitees: userId }] },
     { _id: true, name: true, owner: true },
+    { skip: page * limit, limit },
   )
     .then((shoppingLists) => Ok(shoppingLists.map(shoppingListToDomain)))
     .catch((err) => {
