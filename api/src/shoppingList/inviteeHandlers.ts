@@ -7,7 +7,7 @@ import {
   addInviteeToShoppingList,
   getShoppingList,
   getShoppingListDetailedInvitees,
-  removeInviteeToShoppingList,
+  removeInviteeFromShoppingList,
 } from "../user/shoppingListDb";
 import { findUserByEmail } from "../user/userDb";
 
@@ -137,7 +137,7 @@ export const removeInviteeFromShoppingListHandler: Handler = async (
     return;
   }
 
-  (await removeInviteeToShoppingList(params.shoppingListId, params.userId))
+  (await removeInviteeFromShoppingList(params.shoppingListId, params.userId))
     .mapErr((err) => {
       switch (err) {
         case "notFound":

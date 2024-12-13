@@ -6,7 +6,7 @@ import { canAccessList } from "../helpers/canAccessList";
 import {
   createShoppingList,
   deleteShoppingList,
-  getShoppingListDetail,
+  getShoppingList,
   listShoppingListsForUser,
 } from "../user/shoppingListDb";
 import { isOwnerOfList } from "../helpers/isOwnerOfList";
@@ -25,7 +25,7 @@ export const createShoppingListHandler: Handler = async (req, res) => {
     return;
   }
 
-  (await createShoppingList({ ...body, owner: req.userId }))
+  (await createShoppingList({ ...body, owner: req.userId, archived: false }))
     .mapErr((err) => {
       switch (err) {
         case "unknown":
@@ -68,7 +68,7 @@ export const getShoppingListHandler: Handler = async (req, res) => {
     return;
   }
 
-  (await getShoppingListDetail(params.id))
+  (await getShoppingList(params.id))
     .mapErr((err) => {
       switch (err) {
         case "notFound":

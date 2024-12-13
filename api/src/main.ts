@@ -8,6 +8,7 @@ import {
 } from "./shoppingList/shoppingListHandlers";
 import {
   createShoppingListItemHandler,
+  deleteShoppingListItemHandler,
   listShoppingListItemsHandler,
   updateShoppingListItemHandler,
 } from "./shoppingList/itemHandlers";
@@ -44,8 +45,12 @@ const main = async () => {
     createShoppingListItemHandler,
   );
   app.put(
-    "/shopping-lists/:shoppingListId/item/:itemIndex",
+    "/shopping-lists/:shoppingListId/items/:itemId",
     updateShoppingListItemHandler,
+  );
+  app.delete(
+    "/shopping-lists/:shoppingListId/items/:itemId",
+    deleteShoppingListItemHandler,
   );
 
   app.get(

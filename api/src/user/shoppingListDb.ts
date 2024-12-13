@@ -6,14 +6,19 @@ export type ShoppingList = {
   id: string;
   name: string;
   owner: User;
+  archived: boolean;
 };
 
-export type ShoppingListDetail = ShoppingList & {
-  items: {
-    name: string;
-    completed: boolean;
-    archived: boolean;
-  }[];
+export type ShoppingListItem = {
+  id: string;
+  name: string;
+  completed: boolean;
+};
+
+type ShoppingListItemDb = {
+  id: ObjectId;
+  name: string;
+  completed: boolean;
 };
 
 type ShoppingListDb = {
@@ -21,24 +26,29 @@ type ShoppingListDb = {
   name: string;
   owner: UserDb;
   invitees: UserDb[];
-  items: {
-    name: string;
-    completed: boolean;
-    archived: boolean;
-  }[];
+  items: ShoppingListItemDb[];
+  archived: boolean;
 };
 
 const shoppingListSchema = new Schema<ShoppingListDb>(
   {
     name: { type: String, required: true },
-    owner: { type: Schema.Types.ObjectId, required: true, ref: "user" },
-    invitees: [{ type: Schema.Types.ObjectId, unique: true, ref: "user" }],
+    owner: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "user",
+      index: true,
+    },
+    invitees: [
+      { type: Schema.Types.ObjectId, unique: true, ref: "user", index: true },
+    ],
+    archived: { type: Boolean },
     items: [
       {
         type: {
+          id: { type: Schema.Types.ObjectId, required: true, auto: true },
           name: { type: String, required: true },
           completed: { type: Boolean, required: true },
-          archived: { type: Boolean, required: true },
         },
         required: true,
       },
@@ -46,6 +56,7 @@ const shoppingListSchema = new Schema<ShoppingListDb>(
   },
   { selectPopulatedPaths: true },
 );
+shoppingListSchema.index({ owner: "asc", invitees: "asc" });
 
 const ShoppingListModel = mongoose.model("shopping-list", shoppingListSchema);
 
@@ -53,15 +64,15 @@ const shoppingListToDomain = (shoppingList: ShoppingListDb): ShoppingList => ({
   id: shoppingList._id.toString(),
   name: shoppingList.name,
   owner: userToDomain(shoppingList.owner),
+  archived: shoppingList.archived,
 });
 
-const shoppingListDetailToDomain = (
-  shoppingList: ShoppingListDb,
-): ShoppingListDetail => ({
-  id: shoppingList._id.toString(),
-  name: shoppingList.name,
-  owner: userToDomain(shoppingList.owner),
-  items: shoppingList.items,
+const shoppingListItemToDoman = (
+  item: ShoppingListItemDb,
+): ShoppingListItem => ({
+  id: item.id.toString(),
+  completed: item.completed,
+  name: item.name,
 });
 
 export type CreateShoppingListError = "unknown";
@@ -111,18 +122,19 @@ export const getShoppingList = async (
   }
 };
 
-export type GetShoppingListDetailError = "notFound" | "unknown";
-export const getShoppingListDetail = async (
+export type GetShoppingListItemsError = "notFound" | "unknown";
+export const getShoppingListItems = async (
   id: string,
-): Promise<Result<ShoppingListDetail, GetShoppingListDetailError>> => {
+  includeCompleted: boolean,
+): Promise<Result<ShoppingListItem[], GetShoppingListItemsError>> => {
   try {
-    const shoppingList = await ShoppingListModel.findOne(
-      { _id: id },
-      { id: true, items: true, name: true, owner: true },
-      { populate: "owner" },
-    );
-    if (!shoppingList) return Err("notFound");
-    return Ok(shoppingListDetailToDomain(shoppingList));
+    const items = await ShoppingListModel.aggregate<ShoppingListItemDb>([
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      { $unwind: "$items" },
+      ...(includeCompleted ? [] : [{ $match: { "items.completed": false } }]),
+      { $replaceRoot: { newRoot: "$items" } },
+    ]);
+    return Ok(items.map(shoppingListItemToDoman));
   } catch (err) {
     console.error(err);
     if (err instanceof Error.CastError && err.path === "_id") {
@@ -209,15 +221,18 @@ export const addInviteeToShoppingList = async (
     return Ok(null);
   } catch (err) {
     console.error(err);
+    if (err instanceof Error.CastError && err.path === "_id") {
+      return Err("notFound");
+    }
     return Err("unknown");
   }
 };
 
-export type RemoveInviteeToShoppingListError = "notFound" | "unknown";
-export const removeInviteeToShoppingList = async (
+export type RemoveInviteeFromShoppingListError = "notFound" | "unknown";
+export const removeInviteeFromShoppingList = async (
   shoppingListId: string,
   userId: string,
-): Promise<Result<null, RemoveInviteeToShoppingListError>> => {
+): Promise<Result<null, RemoveInviteeFromShoppingListError>> => {
   try {
     const res = await ShoppingListModel.updateOne(
       { _id: shoppingListId },
@@ -232,6 +247,99 @@ export const removeInviteeToShoppingList = async (
     return Ok(null);
   } catch (err) {
     console.error(err);
+    if (err instanceof Error.CastError && err.path === "_id") {
+      return Err("notFound");
+    }
+    return Err("unknown");
+  }
+};
+
+export type AddItemToShoppingListError = "notFound" | "unknown";
+export const addItemToShoppingList = async (
+  shoppingListId: string,
+  item: Omit<ShoppingListItem, "id">,
+): Promise<Result<ShoppingListItem, AddItemToShoppingListError>> => {
+  try {
+    const res = await ShoppingListModel.updateOne(
+      { _id: shoppingListId },
+      {
+        $push: {
+          items: item,
+        },
+      },
+    );
+    if (res.matchedCount === 0) return Err("notFound");
+
+    const updated = await ShoppingListModel.findById(shoppingListId);
+    if (!updated) return Err("unknown");
+
+    const lastItem = updated.items.at(-1);
+    if (!lastItem) return Err("unknown");
+
+    return Ok(shoppingListItemToDoman(lastItem));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof Error.CastError && err.path === "_id") {
+      return Err("notFound");
+    }
+    return Err("unknown");
+  }
+};
+
+export type UpdateItemInShoppingListError = "notFound" | "unknown";
+export const updateItemInShoppingList = async (
+  shoppingListId: string,
+  item: ShoppingListItem,
+): Promise<Result<ShoppingListItem, UpdateItemInShoppingListError>> => {
+  try {
+    const res = await ShoppingListModel.updateOne(
+      { _id: shoppingListId, "items.id": item.id },
+      {
+        $set: {
+          "items.$": item,
+        },
+      },
+    );
+    if (res.matchedCount === 0) return Err("notFound");
+
+    const updated = await ShoppingListModel.findById(shoppingListId);
+    if (!updated) return Err("unknown");
+
+    return Ok(item);
+  } catch (err) {
+    console.error(err);
+    if (err instanceof Error.CastError && err.path === "_id") {
+      return Err("notFound");
+    }
+    return Err("unknown");
+  }
+};
+
+export type DeleteItemInShoppingListError = "notFound" | "unknown";
+export const deleteItemInShoppingList = async (
+  shoppingListId: string,
+  itemId: string,
+): Promise<Result<null, DeleteItemInShoppingListError>> => {
+  try {
+    const res = await ShoppingListModel.updateOne(
+      { _id: shoppingListId },
+      {
+        $pull: {
+          items: { id: itemId },
+        },
+      },
+    );
+    if (res.matchedCount === 0) return Err("notFound");
+
+    const updated = await ShoppingListModel.findById(shoppingListId);
+    if (!updated) return Err("unknown");
+
+    return Ok(null);
+  } catch (err) {
+    console.error(err);
+    if (err instanceof Error.CastError && err.path === "_id") {
+      return Err("notFound");
+    }
     return Err("unknown");
   }
 };

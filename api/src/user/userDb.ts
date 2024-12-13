@@ -16,7 +16,7 @@ export type UserDb = {
 const UserModel = mongoose.model<UserDb>(
   "user",
   new Schema({
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, index: true },
     hashedPassword: { type: String, required: true, select: false },
   }),
 );
