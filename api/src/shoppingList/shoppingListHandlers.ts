@@ -91,8 +91,12 @@ export const getShoppingListHandler: Handler = async (req, res) => {
     return sendInputValidationError(res, "params", paramsValidation.error);
   const params = paramsValidation.data;
 
-  if (!req.userId || !(await canAccessList(req.userId, params.id))) {
+  if (!req.userId) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
+    return;
+  }
+  if (!(await canAccessList(req.userId, params.id))) {
+    res.sendStatus(StatusCodes.FORBIDDEN);
     return;
   }
 
@@ -112,7 +116,7 @@ const updateShoppingListParamsSchema = z.object({
   id: z.string(),
 });
 const updateShoppingListBodySchema = z.object({
-  name: z.string().optional(),
+  name: z.string().min(1).optional(),
   archived: z.boolean().optional(),
 });
 export const updateShoppingListHandler: Handler = async (req, res) => {
@@ -126,8 +130,12 @@ export const updateShoppingListHandler: Handler = async (req, res) => {
     return sendInputValidationError(res, "body", bodyValidation.error);
   const body = bodyValidation.data;
 
-  if (!req.userId || !(await isOwnerOfList(req.userId, params.id))) {
+  if (!req.userId) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
+    return;
+  }
+  if (!(await isOwnerOfList(req.userId, params.id))) {
+    res.sendStatus(StatusCodes.FORBIDDEN);
     return;
   }
 

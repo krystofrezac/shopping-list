@@ -159,11 +159,12 @@ export const deleteShoppingListItemHandler: Handler = async (req, res) => {
     return sendInputValidationError(res, "params", paramsValidation.error);
   const params = paramsValidation.data;
 
-  if (
-    !req.userId ||
-    !(await canAccessList(req.userId, params.shoppingListId))
-  ) {
+  if (!req.userId) {
     res.sendStatus(StatusCodes.UNAUTHORIZED);
+    return;
+  }
+  if (!(await canAccessList(req.userId, params.shoppingListId))) {
+    res.sendStatus(StatusCodes.FORBIDDEN);
     return;
   }
 

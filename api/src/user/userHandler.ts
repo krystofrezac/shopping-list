@@ -2,7 +2,7 @@ import { z } from "zod";
 import { sendInputValidationError } from "../helpers/sendInputValidationError";
 import { StatusCodes } from "http-status-codes";
 import { createUser, findUserByEmail } from "./userDb";
-import { compare, hash } from "bcrypt";
+import { compare, compareSync, hash } from "bcrypt";
 import { handler } from "../helpers/handler";
 import jwt from "jsonwebtoken";
 import { env } from "../env";
@@ -54,7 +54,8 @@ export const loginUserHandler = handler(async (req, res) => {
       }
     })
     .map(async (foundUser) => {
-      const isCorrectPassword = await compare(
+      // compare doesn't work with tests
+      const isCorrectPassword = compareSync(
         body.password,
         foundUser.hashedPassword!,
       );

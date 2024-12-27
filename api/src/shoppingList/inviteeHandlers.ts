@@ -71,7 +71,9 @@ export const inviteUserToShoppingListHandler: Handler = async (req, res) => {
     return;
   }
 
-  (await getShoppingList(params.shoppingListId))
+  await (
+    await getShoppingList(params.shoppingListId)
+  )
     .mapErr((err) => {
       switch (err) {
         case "notFound":
@@ -81,7 +83,7 @@ export const inviteUserToShoppingListHandler: Handler = async (req, res) => {
       }
     })
     .map(async (shoppingList) => {
-      (await findUserByEmail(body.email))
+      return (await findUserByEmail(body.email))
         .mapErr((err) => {
           switch (err) {
             case "notFound":
@@ -110,8 +112,10 @@ export const inviteUserToShoppingListHandler: Handler = async (req, res) => {
             .map(() => {
               return res.status(StatusCodes.CREATED).json(user);
             });
-        });
-    });
+        })
+        .unwrapOr(Promise.resolve(undefined));
+    })
+    .unwrapOr(Promise.resolve(undefined));
 };
 
 const removeInviteeFromShoppingListParamsSchema = z.object({
