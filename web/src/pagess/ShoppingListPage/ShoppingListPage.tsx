@@ -94,7 +94,7 @@ export const ShoppingListPage = () => {
           backText="Back to shopping lists"
           backPath="/"
           rightElement={
-            <div className="flex gap-2 items-center">
+            <div className="flex flex-wrap gap-2 items-center justify-end">
               <Dropdown
                 activator={<IconButton iconName="EllipsisVerticalIcon" />}
               >

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { UserProvider } from "./contexts/UserContext";
 import { InviteesPage } from "./pagess/InviteesPage/InviteesPage";
 import { ShoppingListsPage } from "./pagess/ShoppingListsPage/ShoppingListsPage";
+import { getCurrerntTheme, renderTheme } from "./helpers/theme";
 
 const router = createBrowserRouter([
   {
@@ -41,6 +42,8 @@ const queryclient = new QueryClient({
     },
   },
 });
+
+renderTheme(getCurrerntTheme());
 
 export const App = () => (
   <QueryClientProvider client={queryclient}>
